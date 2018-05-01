@@ -1,0 +1,440 @@
+import FileIO;
+import Graphics2D;
+import Graphics2DText;
+import Math;
+import Random;
+import TwoCansAlpha2;
+
+const X_RES = 640;
+const Y_RES = 480;
+
+const FLASH_DURATION = 24;
+
+const N_VOWELS = 5;
+const N_CONSONANTS = 7;
+const N_LETTERS = N_VOWELS + N_CONSONANTS;
+
+const REQUIRED_SCORE_RATIO = 0.25;
+
+const FONT_SIZE = 12;
+const ROW_HEIGHT = 20;
+const COL_WIDTH = 15;
+const N_COLS = floor(X_RES / COL_WIDTH);
+const MIN_ROWS = 10;
+const MAX_ROWS = 15;
+const SCORE_BAR_HEIGHT = 20;
+
+const LEFT = 0;
+const CENTER = 0.5;
+const RIGHT = 1;
+const TOP = 0;
+const MIDDLE = 0.5;
+const BOTTOM = 1;
+
+enum TextColor { BLACK, GREEN, YELLOW, RED }
+
+class WordTree {
+	field children = {};
+	field isWord = false;
+
+	constructor(words = []) {
+		for (word : words) {
+			this.insert(word);
+		}
+	}
+
+	// Inserts the given word into the tree. Duplicate insertions have no effect.
+	function insert(word) {
+		if (word.length > 0) {
+			if (!this.children.contains(word[0])) {
+				this.children[word[0]] = new WordTree();
+			}
+			this.children[word[0]].insert(word[1:]);
+		} else {
+			this.isWord = true;
+		}
+	}
+
+	// Returns whether the given word is contained in this tree.
+	function contains(word) {
+		return word.length == 0
+			? this.isWord
+			: this.children.contains(word[0]) && this.children[word[0]].contains(word[1:])
+			;
+	}
+
+	// Returns a list of all the words in the tree with the given prefix.
+	function getWordsPrefixed(rightPrefix = "", leftPrefix = "") {
+		return rightPrefix.length == 0
+			? this.getWords(leftPrefix)
+			: this.children.contains(rightPrefix[0])
+				? this.children[rightPrefix[0]].getWordsPrefixed(rightPrefix[1:], leftPrefix + rightPrefix[0])
+				: []
+			;
+	}
+
+	// Returns a list of all the words in the tree that use only letters from the given dictionary of letters to counts.
+	function getWordsUsing(letterCounts, prefix = "") {
+		result = [];
+		if (this.isWord) {
+			result.add(prefix);
+		}
+		for (key : this.children.keys()) {
+			if (letterCounts.contains(key)) {
+				childLetterCounts = letterCounts.clone();
+				if (childLetterCounts[key] == 1) {
+					childLetterCounts.remove(key);
+				} else {
+					--childLetterCounts[key];
+				}
+				result.concat(this.children[key].getWordsUsing(childLetterCounts, prefix + key));
+			}
+		}
+		return result;
+	}
+
+	// Returns a list of all the words in the tree.
+	function getWords(prefix = "") {
+		result = [];
+		if (this.isWord) {
+			result.add(prefix);
+		}
+		for (key : this.children.keys()) {
+			result.concat(this.children[key].getWords(prefix + key));
+		}
+		return result;
+	}
+}
+
+function stringToCharCounts(string) {
+	result = {};
+	for (c : string) {
+		if (!result.contains(c)) {
+			result[c] = 0;
+		}
+		++result[c];
+	}
+	return result;
+}
+
+function lengthThreeOrMore(string) { return string.length >= 3; }
+function getLength(list) { return list.length; }
+
+class MainScene : AbstractScene {
+	static field vowels = ['A', 'E', 'I', 'O', 'U'];
+	static field consonants = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z'];
+	static field alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+	static field keys;
+	static field letterToKey;
+
+	static field scoreMap =
+		{ 'A': 1, 'E': 1, 'I': 1, 'O': 1, 'U': 1, 'L': 1, 'N': 1, 'S': 1, 'T': 1, 'R': 1
+		, 'D': 2, 'G': 2
+		, 'B': 3, 'C': 3, 'M': 3, 'P': 3
+		, 'F': 4, 'H': 4, 'V': 4, 'W': 4, 'Y': 4
+		, 'K': 5
+		, 'J': 8, 'X': 8
+		, 'Q': 10, 'Z': 10
+		};
+	static function getScore(word) {
+		result = 0;
+		for (c : word) {
+			result += MainScene.scoreMap[c];
+		}
+		return result;
+	}
+
+	static constructor() {
+		// Create key list.
+		MainScene.keys =
+			[ KeyboardKey.A
+			, KeyboardKey.B
+			, KeyboardKey.C
+			, KeyboardKey.D
+			, KeyboardKey.E
+			, KeyboardKey.F
+			, KeyboardKey.G
+			, KeyboardKey.H
+			, KeyboardKey.I
+			, KeyboardKey.J
+			, KeyboardKey.K
+			, KeyboardKey.L
+			, KeyboardKey.M
+			, KeyboardKey.N
+			, KeyboardKey.O
+			, KeyboardKey.P
+			, KeyboardKey.Q
+			, KeyboardKey.R
+			, KeyboardKey.S
+			, KeyboardKey.T
+			, KeyboardKey.U
+			, KeyboardKey.V
+			, KeyboardKey.W
+			, KeyboardKey.X
+			, KeyboardKey.Y
+			, KeyboardKey.Z
+			];
+		// Create letter-to-key map.
+		MainScene.letterToKey = {};
+		for (i = 0; i < MainScene.keys.length; ++i) {
+			MainScene.letterToKey[MainScene.alphabet[i]] = MainScene.keys[i];
+		}
+	}
+
+	field words;
+	field foundWordMap;
+
+	field maxLength;
+	field current;
+	field letters;
+	field currentScore;
+	field maxScore;
+
+	field letterToImage = {};
+
+	field flashTimer;
+	field flashColor;
+	field flashWordSet;
+
+	field currentInput;
+	field lastInput = new InputManager();
+
+	function reset() {
+		this.current = "";
+		this.flashTimer = 0;
+
+		// Add random letters.
+		this.letters = [];
+		for (i = 0; i < N_VOWELS; ++i) {
+			this.letters.add(MainScene.vowels.choice());
+		}
+		for (i = 0; i < N_CONSONANTS; ++i) {
+			this.letters.add(MainScene.consonants.choice());
+		}
+		this.letters.shuffle();
+
+		// Find possible words with at least three letters.
+		possibleWords = this.words
+			.getWordsUsing(stringToCharCounts(this.letters))
+			.filter(lengthThreeOrMore);
+		// Ensure there's at least one valid word.
+		if (possibleWords.length == 0) {
+			this.reset();
+			return;
+		}
+		// Shuffle and then sort by length, to avoid giving hints besides word length.
+		possibleWords.shuffle();
+		possibleWords.sort(getLength);
+		// Populate the found word map and find the max word length and max score.
+		this.foundWordMap = {};
+		this.maxLength = 0;
+		this.currentScore = 0;
+		this.maxScore = 0;
+		for (word : possibleWords) {
+			this.foundWordMap[word] = false;
+			this.maxScore += MainScene.getScore(word);
+			if (word.length > this.maxLength) {
+				this.maxLength = word.length;
+			}
+		}
+
+		// Ensure that the number of rows is within the desired range.
+		row = 0;
+		col = 0;
+		for (word : this.foundWordMap.keys()) {
+			if (col + word.length >= N_COLS) {
+				++row;
+				col = 0;
+			}
+			col += word.length + 1;
+		}
+		if (row < MIN_ROWS || row > MAX_ROWS) {
+			this.reset();
+		}
+	}
+
+	constructor() : base() {
+		// Load word set from disk.
+		this.words = new WordTree(FileIO.fileReadText("source/words.txt").split('\n'));
+
+		// Render letters.
+		font = FontResource.fromSystem('Consolas').getRenderer().setSize(FONT_SIZE);
+		for (letter : MainScene.alphabet + ['-']) {
+			entry = {};
+			font.setColor(0, 0, 0);
+			entry[TextColor.BLACK] = font.render(letter);
+			font.setColor(0, 192, 0);
+			entry[TextColor.GREEN] = font.render(letter);
+			font.setColor(255, 192, 0);
+			entry[TextColor.YELLOW] = font.render(letter);
+			font.setColor(255, 0, 0);
+			entry[TextColor.RED] = font.render(letter);
+			this.letterToImage[letter] = entry;
+		}
+
+		this.reset();
+	}
+
+	function pressed(key) {
+		return this.currentInput.isKeyPressed(key) && !this.lastInput.isKeyPressed(key);
+	}
+
+	function emptyTray() {
+		for (letter : this.current) {
+			this.letters.add(letter);
+		}
+		this.current = "";
+	}
+
+	function revealAll() {
+		revealedAny = false;
+		this.flashWordSet = {};
+		for (word : this.foundWordMap.keys()) {
+			if (!this.foundWordMap[word]) {
+				this.foundWordMap[word] = true;
+				this.flashWordSet[word] = true;
+				revealedAny = true;
+			}
+		}
+		if (revealedAny) {
+			this.flashTimer = FLASH_DURATION;
+			this.flashColor = this.currentScore < floor(REQUIRED_SCORE_RATIO * this.maxScore)
+				? TextColor.RED
+				: TextColor.GREEN
+				;
+		}
+		return revealedAny;
+	}
+
+	function update(inputManager, events) {
+		this.currentInput = inputManager;
+
+		// Reveal all or reset.
+		if (this.pressed(KeyboardKey.ESCAPE)) {
+			if (!this.revealAll()) {
+				this.reset();
+			}
+		}
+
+		// Shuffle letter tray.
+		if (inputManager.isShiftPressed()) {
+			this.letters.shuffle();
+		}
+
+		// Use letters.
+		for (i = 0; i < this.letters.length; ++i) {
+			key = MainScene.letterToKey[this.letters[i]];
+			if (this.pressed(key)) {
+				this.current += this.letters[i];
+				this.letters.remove(i);
+				--i;
+				// Prevent extra letter use by removing key presses from the current input manager.
+				this.currentInput.pressedKeys[key] = false;
+			}
+		}
+
+		// Return letters to tray.
+		if (this.pressed(KeyboardKey.SPACE)) {
+			this.emptyTray();
+		}
+
+		// Return one letter to tray.
+		if (this.pressed(KeyboardKey.PERIOD)) {
+			if (this.current.length > 0) {
+				this.letters.add(this.current[-1]);
+				this.current = this.current[:-1];
+			}
+		}
+
+		// Try current guess.
+		if (this.pressed(KeyboardKey.ENTER)) {
+			this.flashTimer = FLASH_DURATION;
+			this.flashWordSet = { this.current: true };
+			if (this.foundWordMap.contains(this.current)) {
+				if (this.foundWordMap[this.current]) {
+					// Already found this word.
+					this.flashColor = TextColor.YELLOW;
+				} else {
+					// New word.
+					this.currentScore += MainScene.getScore(this.current);
+					this.flashColor = TextColor.GREEN;
+					this.foundWordMap[this.current] = true;
+				}
+				this.emptyTray();
+			} else {
+				this.flashColor = TextColor.RED;
+			}
+		}
+
+		if (this.flashTimer > 0) {
+			--this.flashTimer;
+		}
+
+		this.lastInput = new InputManager();
+		this.lastInput.pressedKeys = inputManager.pressedKeys.clone();
+	}
+
+	function drawWord(string, x, y, xAlign, yAlign) {
+		color = this.flashTimer % 6 >= 3 && this.flashWordSet.contains(string)
+			? this.flashColor
+			: TextColor.BLACK
+			;
+		for (letter : string) {
+			image = this.letterToImage[letter][color];
+			image.draw(x - floor(xAlign * image.width), y - floor(yAlign * image.height));
+			x += COL_WIDTH;
+		}
+	}
+
+	function render() {
+		Graphics2D.Draw.fill(255, 255, 255);
+
+		// Draw available letters.
+		this.drawWord(this.letters, 0, 0, LEFT, TOP);
+
+		// Draw current guess.
+		this.drawWord(this.current, 0, 2 * ROW_HEIGHT, LEFT, TOP);
+
+		// Draw found and missing words.
+		row = 4;
+		col = 0;
+		for (word : this.foundWordMap.keys()) {
+			if (col + word.length >= N_COLS) {
+				++row;
+				col = 0;
+			}
+			this.drawWord
+				( this.foundWordMap[word] ? word : ['-'] * word.length
+				, col * COL_WIDTH
+				, row * ROW_HEIGHT
+				, LEFT
+				, TOP
+				);
+			col += word.length + 1;
+		}
+
+		// Draw score bar.
+		Graphics2D.Draw.rectangle
+			( 0
+			, Y_RES - SCORE_BAR_HEIGHT
+			, X_RES
+			, SCORE_BAR_HEIGHT
+			, 0, 0, 0
+			);
+		if (this.currentScore >= REQUIRED_SCORE_RATIO * this.maxScore) {
+			r = 0;
+			g = 255;
+		} else {
+			r = 255;
+			g = 0;
+		}
+		Graphics2D.Draw.rectangle
+			( 1
+			, Y_RES - SCORE_BAR_HEIGHT + 1
+			, (X_RES - 2) * this.currentScore / this.maxScore
+			, SCORE_BAR_HEIGHT - 2
+			, r, g, 0
+			);
+		Graphics2D.Draw.line(X_RES / 4, Y_RES - SCORE_BAR_HEIGHT + 1, X_RES / 4, Y_RES - 1, 2, 0, 255, 0);
+	}
+}
