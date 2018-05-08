@@ -1,8 +1,8 @@
-import FileIO;
 import Graphics2D;
 import Graphics2DText;
 import Math;
 import Random;
+import Resources;
 import TwoCansAlpha2;
 
 const X_RES = 640;
@@ -126,6 +126,7 @@ class MainScene : AbstractScene {
 	static field alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 	static field keys;
 	static field letterToKey;
+	static field keyToLetter;
 
 	static field scoreMap =
 		{ 'A': 1, 'E': 1, 'I': 1, 'O': 1, 'U': 1, 'L': 1, 'N': 1, 'S': 1, 'T': 1, 'R': 1
@@ -176,8 +177,10 @@ class MainScene : AbstractScene {
 			];
 		// Create letter-to-key map.
 		MainScene.letterToKey = {};
+		MainScene.keyToLetter = {};
 		for (i = 0; i < MainScene.keys.length; ++i) {
 			MainScene.letterToKey[MainScene.alphabet[i]] = MainScene.keys[i];
+			MainScene.keyToLetter[MainScene.keys[i]] = MainScene.alphabet[i];
 		}
 	}
 
@@ -195,9 +198,6 @@ class MainScene : AbstractScene {
 	field flashTimer;
 	field flashColor;
 	field flashWordSet;
-
-	field currentInput;
-	field lastInput = new InputManager();
 
 	function reset() {
 		this.current = "";
@@ -255,7 +255,7 @@ class MainScene : AbstractScene {
 
 	constructor() : base() {
 		// Load word set from disk.
-		this.words = new WordTree(FileIO.fileReadText("source/words.txt").split('\n'));
+		this.words = new WordTree(Resources.readText("words.txt").split('\n'));
 
 		// Render letters.
 		font = FontResource.fromSystem('Consolas').getRenderer().setSize(FONT_SIZE);
@@ -273,10 +273,6 @@ class MainScene : AbstractScene {
 		}
 
 		this.reset();
-	}
-
-	function pressed(key) {
-		return this.currentInput.isKeyPressed(key) && !this.lastInput.isKeyPressed(key);
 	}
 
 	function emptyTray() {
@@ -307,10 +303,8 @@ class MainScene : AbstractScene {
 	}
 
 	function update(inputManager, events) {
-		this.currentInput = inputManager;
-
 		// Reveal all or reset.
-		if (this.pressed(KeyboardKey.ESCAPE)) {
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ESCAPE)) {
 			if (!this.revealAll()) {
 				this.reset();
 			}
@@ -322,24 +316,28 @@ class MainScene : AbstractScene {
 		}
 
 		// Use letters.
-		for (i = 0; i < this.letters.length; ++i) {
-			key = MainScene.letterToKey[this.letters[i]];
-			if (this.pressed(key)) {
-				this.current += this.letters[i];
-				this.letters.remove(i);
-				--i;
-				// Prevent extra letter use by removing key presses from the current input manager.
-				this.currentInput.pressedKeys[key] = false;
+		for (event : events) {
+			if (event.type == EventType.KEY && event.down) {
+				if (MainScene.keyToLetter.contains(event.key)) {
+					letter = MainScene.keyToLetter[event.key];
+					for (i = 0; i < this.letters.length; ++i) {
+						if (this.letters[i] == letter) {
+							this.current += this.letters[i];
+							this.letters.remove(i);
+							break;
+						}
+					}
+				}
 			}
 		}
 
 		// Return letters to tray.
-		if (this.pressed(KeyboardKey.SPACE)) {
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.SPACE)) {
 			this.emptyTray();
 		}
 
 		// Return one letter to tray.
-		if (this.pressed(KeyboardKey.PERIOD)) {
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.PERIOD)) {
 			if (this.current.length > 0) {
 				this.letters.add(this.current[-1]);
 				this.current = this.current[:-1];
@@ -347,7 +345,7 @@ class MainScene : AbstractScene {
 		}
 
 		// Try current guess.
-		if (this.pressed(KeyboardKey.ENTER)) {
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ENTER)) {
 			this.flashTimer = FLASH_DURATION;
 			this.flashWordSet = { this.current: true };
 			if (this.foundWordMap.contains(this.current)) {
@@ -369,9 +367,6 @@ class MainScene : AbstractScene {
 		if (this.flashTimer > 0) {
 			--this.flashTimer;
 		}
-
-		this.lastInput = new InputManager();
-		this.lastInput.pressedKeys = inputManager.pressedKeys.clone();
 	}
 
 	function drawWord(string, x, y, xAlign, yAlign) {
@@ -387,15 +382,19 @@ class MainScene : AbstractScene {
 	}
 
 	function render() {
+		print("Render...");
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw available letters.
+		print("Draw available letters.");
 		this.drawWord(this.letters, 0, 0, LEFT, TOP);
 
 		// Draw current guess.
+		print("Draw current guess.");
 		this.drawWord(this.current, 0, 2 * ROW_HEIGHT, LEFT, TOP);
 
 		// Draw found and missing words.
+		print("Draw found/missing words.");
 		row = 4;
 		col = 0;
 		for (word : this.foundWordMap.keys()) {
@@ -414,6 +413,7 @@ class MainScene : AbstractScene {
 		}
 
 		// Draw score bar.
+		print("Draw score bar.");
 		Graphics2D.Draw.rectangle
 			( 0
 			, Y_RES - SCORE_BAR_HEIGHT
@@ -436,5 +436,6 @@ class MainScene : AbstractScene {
 			, r, g, 0
 			);
 		Graphics2D.Draw.line(X_RES / 4, Y_RES - SCORE_BAR_HEIGHT + 1, X_RES / 4, Y_RES - 1, 2, 0, 255, 0);
+		print("Done rendering.");
 	}
 }
