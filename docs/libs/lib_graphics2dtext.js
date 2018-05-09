@@ -13,7 +13,6 @@
 	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "simpleBlit", 5);
 };
 
-
 var v_lib_graphics2dtext_function_createNativeFont = function(v_args) {
 	var v_nf = v_args[0][1];
 	var v_nfOut = v_nf[3];
@@ -53,43 +52,35 @@ var v_lib_graphics2dtext_function_createNativeFont = function(v_args) {
 	return v_buildInteger(0);
 };
 
-
 var v_lib_graphics2dtext_function_getNativeFontUniqueKey = function(v_args) {
 	var v_output = v_args[7][1];
 	v_output.splice(0, 0, v_args[0], v_args[1]);
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2dtext_function_glGenerateAndLoadTexture = function(v_args) {
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_graphics2dtext_function_glRenderCharTile = function(v_args) {
 	return v_VALUE_TRUE;
 };
 
-
 var v_lib_graphics2dtext_function_glRenderTextSurface = function(v_args) {
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_graphics2dtext_function_glSetNativeDataIntArray = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2dtext_function_isDynamicFontLoaded = function(v_args) {
 	return v_buildBoolean(LIB$graphics2dtext$isDynamicFontLoaded());
 };
 
-
 var v_lib_graphics2dtext_function_isGlRenderer = function(v_args) {
 	return v_VALUE_FALSE;
 };
-
 
 var v_lib_graphics2dtext_function_isResourceAvailable = function(v_args) {
 	var v_path = v_args[0][1];
@@ -104,11 +95,9 @@ var v_lib_graphics2dtext_function_isResourceAvailable = function(v_args) {
 	return v_VALUE_TRUE;
 };
 
-
 var v_lib_graphics2dtext_function_isSystemFontPresent = function(v_args) {
 	return v_buildBoolean(LIB$graphics2dtext$isSystemFontAvailable(v_args[0][1]));
 };
-
 
 var v_lib_graphics2dtext_function_renderText = function(v_args) {
 	var v_sizeOut = v_args[0][1];
@@ -142,7 +131,6 @@ var v_lib_graphics2dtext_function_renderText = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2dtext_function_simpleBlit = function(v_args) {
 	var v_nativeBlittableBitmap = (v_args[0][1])[3][0];
 	var v_drawQueueNativeData = (v_args[1][1])[3];
@@ -162,16 +150,15 @@ var v_lib_graphics2dtext_function_simpleBlit = function(v_args) {
 		var v_i = 0;
 		while ((v_i < v_oldSize)) {
 			v_newImageQueue[v_i] = v_imageQueue[v_i];
-			v_imageQueue = v_newImageQueue;
-			v_drawQueueNativeData[2] = v_imageQueue;
 			v_i += 1;
 		}
+		v_imageQueue = v_newImageQueue;
+		v_drawQueueNativeData[2] = v_imageQueue;
 	}
 	v_imageQueue[v_imageQueueLength] = v_nativeBlittableBitmap;
 	v_drawQueueNativeData[3] = (v_imageQueueLength + 1);
 	return v_VALUE_NULL;
 };
-
 
 C$common$scrapeLibFuncNames('graphics2dtext');
 

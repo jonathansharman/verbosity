@@ -4,7 +4,6 @@
 	C$common$registerLibraryFunction('random', v_libRegData, "random_int", 2);
 };
 
-
 var v_lib_random_function_random_bool = function(v_args) {
 	var v_output = v_VALUE_NULL;
 	if ((Math.random() < 0.5)) {
@@ -15,13 +14,11 @@ var v_lib_random_function_random_bool = function(v_args) {
 	return v_output;
 };
 
-
 var v_lib_random_function_random_float = function(v_args) {
 	var v_output = v_VALUE_NULL;
 	v_output = v_buildFloat(Math.random());
 	return v_output;
 };
-
 
 var v_lib_random_function_random_int = function(v_args) {
 	var v_int1 = 0;
@@ -43,6 +40,5 @@ var v_lib_random_function_random_int = function(v_args) {
 	}
 	return v_output;
 };
-
 
 C$common$scrapeLibFuncNames('random');

@@ -6,15 +6,14 @@
 	C$common$registerLibraryFunction('game', v_libRegData, "initialize_screen", 4);
 	C$common$registerLibraryFunction('game', v_libRegData, "pump_events", 1);
 	C$common$registerLibraryFunction('game', v_libRegData, "set_title", 1);
+	C$common$registerLibraryFunction('game', v_libRegData, "setInstance", 1);
 };
-
 
 var v_lib_game_function_clock_tick = function(v_args) {
 	C$game$endFrame();
 	v_vm_suspend(1);
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_game_function_getScreenInfo = function(v_args) {
 	var v_outList = v_args[0];
@@ -27,7 +26,6 @@ var v_lib_game_function_getScreenInfo = function(v_args) {
 	}
 	return v_outList;
 };
-
 
 var v_lib_game_function_getTouchState = function(v_args) {
 	var v_output = v_args[0][1];
@@ -44,12 +42,10 @@ var v_lib_game_function_getTouchState = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_game_function_initialize = function(v_args) {
 	C$game$initializeGame(v_getFloat(v_args[0]));
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_game_function_initialize_screen = function(v_args) {
 	var v_ec = v_getExecutionContext(v_vm_getCurrentExecutionContextId());
@@ -58,18 +54,23 @@ var v_lib_game_function_initialize_screen = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_game_function_pump_events = function(v_args) {
 	v_libGamePumpEvents(v_args[0][1]);
 	return v_args[0];
 };
-
 
 var v_lib_game_function_set_title = function(v_args) {
 	C$game$setTitle(v_args[0][1]);
 	return v_VALUE_NULL;
 };
 
+var v_lib_game_function_setInstance = function(v_args) {
+	var v_o = v_args[0][1];
+	var v_nd = C$common$createNewArray(1);
+	v_nd[0] = null;
+	v_o[3] = v_nd;
+	return v_VALUE_NULL;
+};
 
 var v_libGamePumpEvents = function(v_output) {
 	var v_eventList = C$game$pumpEventObjects();
@@ -94,7 +95,6 @@ var v_libGamePumpEvents = function(v_output) {
 	}
 	return 0;
 };
-
 
 C$common$scrapeLibFuncNames('game');
 
@@ -605,15 +605,28 @@ C$game$knownSize = null;
 C$game$enforceFullScreen = function() {
 	var screen = [window.innerWidth, window.innerHeight];
 
+	// TODO: find a common thing that works for both the Android and iOS web view.
+    var isAndroid = !!C$common$globalOptions['is_android'];
+
 	if (C$game$knownSize === null ||
 		C$game$knownSize[0] != screen[0] ||
 		C$game$knownSize[1] != screen[1]) {
-
+		
 		var phsCanvas = C$game$real_canvas;
 		C$game$knownSize = screen;
-		phsCanvas.width = screen[0];
-		phsCanvas.height = screen[1];
-		C$game$ctx.scale(screen[0] / C$game$width, screen[1] / C$game$height);
+		if (isAndroid) {
+            var hack = document.getElementById('android_canvas_hack');
+            hack.style.width = screen[0] + 'px';
+            hack.style.height = screen[1] + 'px';
+            phsCanvas.style.width = '50%';
+            phsCanvas.style.height = '50%';
+            phsCanvas.width = C$game$width;
+            phsCanvas.height = C$game$height;
+		} else {
+			phsCanvas.width = screen[0];
+			phsCanvas.height = screen[1];
+		    C$game$ctx.scale(screen[0] / C$game$width, screen[1] / C$game$height);
+		}
 	}
 };
 
@@ -684,11 +697,14 @@ C$game$initializeScreen = function (width, height, pwidth, pheight, execId) {
   
   // make sure the font loader exists first so that it can hide behind the screen.
   C$game$getFontLoader();
-  
+  var isAndroid = !!C$common$globalOptions['is_android'];
+  var canvas_hack_wrapper = isAndroid ? ['<div id="android_canvas_hack">', '</div>'] : ['', ''];
   innerHost.innerHTML +=
+	canvas_hack_wrapper[0] +
 	'<canvas id="crayon_screen" width="' + canvasWidth + '" height="' + canvasHeight + '"></canvas>' +
+	canvas_hack_wrapper[1] +
 	'<div style="display:none;">' +
-		'<img id="crayon_image_loader" onload="Q._finish_loading()" crossOrigin="anonymous" />' +
+		'<img id="crayon_image_loader" crossOrigin="anonymous" />' +
 		'<div id="crayon_image_loader_queue"></div>' +
 		'<div id="crayon_image_store"></div>' +
 		'<div id="crayon_temp_image"></div>' +

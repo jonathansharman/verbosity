@@ -16,7 +16,7 @@ const N_LETTERS = N_VOWELS + N_CONSONANTS;
 
 const REQUIRED_SCORE_RATIO = 0.25;
 
-const FONT_SIZE = 12;
+const FONT_SIZE = 14;
 const ROW_HEIGHT = 20;
 const COL_WIDTH = 15;
 const N_COLS = floor(X_RES / COL_WIDTH);
@@ -258,7 +258,7 @@ class MainScene : AbstractScene {
 		this.words = new WordTree(Resources.readText("words.txt").split('\n'));
 
 		// Render letters.
-		font = FontResource.fromSystem('Consolas').getRenderer().setSize(FONT_SIZE);
+		font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setSize(FONT_SIZE);
 		for (letter : MainScene.alphabet + ['-']) {
 			entry = {};
 			font.setColor(0, 0, 0);
@@ -382,19 +382,15 @@ class MainScene : AbstractScene {
 	}
 
 	function render() {
-		print("Render...");
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw available letters.
-		print("Draw available letters.");
 		this.drawWord(this.letters, 0, 0, LEFT, TOP);
 
 		// Draw current guess.
-		print("Draw current guess.");
 		this.drawWord(this.current, 0, 2 * ROW_HEIGHT, LEFT, TOP);
 
 		// Draw found and missing words.
-		print("Draw found/missing words.");
 		row = 4;
 		col = 0;
 		for (word : this.foundWordMap.keys()) {
@@ -413,7 +409,6 @@ class MainScene : AbstractScene {
 		}
 
 		// Draw score bar.
-		print("Draw score bar.");
 		Graphics2D.Draw.rectangle
 			( 0
 			, Y_RES - SCORE_BAR_HEIGHT
@@ -436,6 +431,5 @@ class MainScene : AbstractScene {
 			, r, g, 0
 			);
 		Graphics2D.Draw.line(X_RES / 4, Y_RES - SCORE_BAR_HEIGHT + 1, X_RES / 4, Y_RES - 1, 2, 0, 255, 0);
-		print("Done rendering.");
 	}
 }

@@ -11,7 +11,6 @@
 	C$common$registerLibraryFunction('graphics2d', v_libRegData, "scale", 6);
 };
 
-
 var v_lib_graphics2d_function_addImageRenderEvent = function(v_args) {
 	var v_bool1 = false;
 	var v_bool2 = false;
@@ -192,7 +191,6 @@ var v_lib_graphics2d_function_addImageRenderEvent = function(v_args) {
 	return v_output;
 };
 
-
 var v_lib_graphics2d_function_flip = function(v_args) {
 	var v_bool1 = false;
 	var v_bool2 = false;
@@ -232,7 +230,6 @@ var v_lib_graphics2d_function_flip = function(v_args) {
 	return v_output;
 };
 
-
 var v_lib_graphics2d_function_initializeTexture = function(v_args) {
 	var v_float1 = 0.0;
 	var v_float2 = 0.0;
@@ -269,7 +266,6 @@ var v_lib_graphics2d_function_initializeTexture = function(v_args) {
 	return v_output;
 };
 
-
 var v_lib_graphics2d_function_initializeTextureResource = function(v_args) {
 	var v_textureResourceInstance = v_args[0][1];
 	var v_textureResourceNativeData = C$common$createNewArray(6);
@@ -294,16 +290,13 @@ var v_lib_graphics2d_function_initializeTextureResource = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2d_function_isOpenGlBased = function(v_args) {
 	return v_VALUE_FALSE;
 };
 
-
 var v_lib_graphics2d_function_isPlatformUsingTextureAtlas = function(v_args) {
 	return v_VALUE_FALSE;
 };
-
 
 var v_lib_graphics2d_function_lineToQuad = function(v_args) {
 	var v_float1 = 0.0;
@@ -371,7 +364,6 @@ var v_lib_graphics2d_function_lineToQuad = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2d_function_renderQueueAction = function(v_args) {
 	var v_command = v_args[2][1];
 	var v_objInstance1 = v_args[0][1];
@@ -413,7 +405,6 @@ var v_lib_graphics2d_function_renderQueueAction = function(v_args) {
 	}
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_graphics2d_function_renderQueueValidateArgs = function(v_args) {
 	var v_o = v_args[0][1];
@@ -647,7 +638,6 @@ var v_lib_graphics2d_function_renderQueueValidateArgs = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_graphics2d_function_scale = function(v_args) {
 	var v_objArray1 = null;
 	var v_objArray2 = null;
@@ -687,6 +677,5 @@ var v_lib_graphics2d_function_scale = function(v_args) {
 	v_objArray1[0] = v_objInstance1[3];
 	return v_args[0];
 };
-
 
 C$common$scrapeLibFuncNames('graphics2d');

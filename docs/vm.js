@@ -12,6 +12,7 @@ var v_VALUE_INT_ZERO = [3, 0];
 var v_VALUE_NULL = [1, null];
 var v_VALUE_TRUE = [2, true];
 
+
 var v_addLiteralImpl = function(v_row, v_stringArg) {
 	var v_p = C$common$programData;
 	var v_type = v_row[0];
@@ -48,7 +49,6 @@ var v_addLiteralImpl = function(v_row, v_stringArg) {
 	return 0;
 };
 
-
 var v_addNameImpl = function(v_nameValue) {
 	var v_p = C$common$programData;
 	var v_index = v_p[6].length;
@@ -60,14 +60,12 @@ var v_addNameImpl = function(v_nameValue) {
 	return 0;
 };
 
-
 var v_buildBoolean = function(v_value) {
 	if (v_value) {
 		return v_VALUE_TRUE;
 	}
 	return v_VALUE_FALSE;
 };
-
 
 var v_buildCommonString = function(v_s) {
 	if (!(v_COMMON_STRINGS[v_s] !== undefined)) {
@@ -76,7 +74,6 @@ var v_buildCommonString = function(v_s) {
 	}
 	return v_COMMON_STRINGS[v_s];
 };
-
 
 var v_buildDictionary = function(v_keys, v_values) {
 	var v_keyLookup = {};
@@ -94,7 +91,6 @@ var v_buildDictionary = function(v_keys, v_values) {
 	return [7, [{}, {}, v_keyLookup, v_valueLookup, Object.keys(v_keyLookup).length, 5]];
 };
 
-
 var v_buildFloat = function(v_value) {
 	if ((v_value == 0.0)) {
 		return v_VALUE_FLOAT_ZERO;
@@ -104,7 +100,6 @@ var v_buildFloat = function(v_value) {
 	}
 	return [4, v_value];
 };
-
 
 var v_buildInteger = function(v_num) {
 	if ((v_num < 0)) {
@@ -119,16 +114,13 @@ var v_buildInteger = function(v_num) {
 	return [3, v_num];
 };
 
-
 var v_buildList = function(v_valueList) {
 	return [6, v_valueList];
 };
 
-
 var v_buildRelayObj = function(v_type, v_iarg1, v_iarg2, v_iarg3, v_farg1, v_sarg1) {
 	return [v_type, v_iarg1, v_iarg2, v_iarg3, v_farg1, v_sarg1];
 };
-
 
 var v_buildString = function(v_s) {
 	if ((v_s.length == 0)) {
@@ -136,7 +128,6 @@ var v_buildString = function(v_s) {
 	}
 	return [5, v_s];
 };
-
 
 var v_buildStringList = function(v_stringList) {
 	var v_output = [];
@@ -148,7 +139,6 @@ var v_buildStringList = function(v_stringList) {
 	}
 	return v_buildList(v_output);
 };
-
 
 var v_buildSwitchIntImpl = function(v_row) {
 	var v_p = C$common$programData;
@@ -162,7 +152,6 @@ var v_buildSwitchIntImpl = function(v_row) {
 	return 0;
 };
 
-
 var v_buildSwitchStringImpl = function(v_row, v_caseValue) {
 	var v_p = C$common$programData;
 	var v_allStringSwitchLookups = v_p[17];
@@ -175,7 +164,6 @@ var v_buildSwitchStringImpl = function(v_row, v_caseValue) {
 	return 0;
 };
 
-
 var v_canonicalizeAngle = function(v_a) {
 	var v_twopi = 6.28318530717958;
 	v_a = (v_a % v_twopi);
@@ -184,7 +172,6 @@ var v_canonicalizeAngle = function(v_a) {
 	}
 	return v_a;
 };
-
 
 var v_canonicalizeListSliceArgs = function(v_outParams, v_beginValue, v_endValue, v_beginIndex, v_endIndex, v_stepAmount, v_length, v_isForward) {
 	if ((v_beginValue == null)) {
@@ -248,7 +235,6 @@ var v_canonicalizeListSliceArgs = function(v_outParams, v_beginValue, v_endValue
 	return 1;
 };
 
-
 var v_cloneDictionary = function(v_original, v_clone) {
 	var v_keyIntLookup_clone = null;
 	var v_valueIntLookup_clone = null;
@@ -289,7 +275,6 @@ var v_cloneDictionary = function(v_original, v_clone) {
 	return v_clone;
 };
 
-
 var v_createLibraryFunctionLookup = function() {
 	var v_p = C$common$programData;
 	var v_length = v_p[2].length;
@@ -309,7 +294,6 @@ var v_createLibraryFunctionLookup = function() {
 	return v_functionPointersByPc;
 };
 
-
 var v_declareLibrary = function(v_refId, v_descriptor) {
 	var v_p = C$common$programData;
 	var v_descriptorParts = v_descriptor.split(",");
@@ -324,7 +308,6 @@ var v_declareLibrary = function(v_refId, v_descriptor) {
 	return v_status;
 };
 
-
 var v_defOriginalCodeImpl = function(v_row, v_fileContents) {
 	var v_p = C$common$programData;
 	var v_fileId = v_row[0];
@@ -335,7 +318,6 @@ var v_defOriginalCodeImpl = function(v_row, v_fileContents) {
 	v_codeLookup[v_fileId] = v_fileContents;
 	return 0;
 };
-
 
 var v_doEqualityComparisonAndReturnCode = function(v_a, v_b) {
 	var v_leftType = v_a[0];
@@ -424,76 +406,61 @@ var v_doEqualityComparisonAndReturnCode = function(v_a, v_b) {
 	return 0;
 };
 
-
 var v_errorResult = function(v_error) {
 	return [3, v_error];
 };
-
 
 var v_EX_AssertionFailed = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 2, v_exMsg);
 };
 
-
 var v_EX_DivisionByZero = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 3, v_exMsg);
 };
-
 
 var v_EX_Fatal = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 0, v_exMsg);
 };
 
-
 var v_EX_IndexOutOfRange = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 4, v_exMsg);
 };
-
 
 var v_EX_InvalidArgument = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 5, v_exMsg);
 };
 
-
 var v_EX_InvalidAssignment = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 6, v_exMsg);
 };
-
 
 var v_EX_InvalidInvocation = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 7, v_exMsg);
 };
 
-
 var v_EX_InvalidKey = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 8, v_exMsg);
 };
-
 
 var v_EX_KeyNotFound = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 9, v_exMsg);
 };
 
-
 var v_EX_NullReference = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 10, v_exMsg);
 };
-
 
 var v_EX_UnassignedVariable = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 11, v_exMsg);
 };
 
-
 var v_EX_UnknownField = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 12, v_exMsg);
 };
 
-
 var v_EX_UnsupportedOperation = function(v_ec, v_exMsg) {
 	return v_generateException2(v_ec, 13, v_exMsg);
 };
-
 
 var v_finalizeInitializationImpl = function(v_projectId, v_localeCount) {
 	var v_p = C$common$programData;
@@ -515,7 +482,6 @@ var v_finalizeInitializationImpl = function(v_projectId, v_localeCount) {
 	v_p[19] = true;
 	return 0;
 };
-
 
 var v_fixFuzzyFloatPrecision = function(v_x) {
 	if (((v_x % 1) != 0)) {
@@ -542,7 +508,6 @@ var v_fixFuzzyFloatPrecision = function(v_x) {
 	}
 	return v_x;
 };
-
 
 var v_generateEsfData = function(v_byteCodeLength, v_esfArgs) {
 	var v_output = C$common$createNewArray(v_byteCodeLength);
@@ -577,7 +542,6 @@ var v_generateEsfData = function(v_byteCodeLength, v_esfArgs) {
 	return v_output;
 };
 
-
 var v_generateException = function(v_stack, v_pc, v_valueStackSize, v_ec, v_type, v_message) {
 	v_ec[2] = v_valueStackSize;
 	v_stack[0] = v_pc;
@@ -599,12 +563,10 @@ var v_generateException = function(v_stack, v_pc, v_valueStackSize, v_ec, v_type
 	return [5, null];
 };
 
-
 var v_generateException2 = function(v_ec, v_exceptionType, v_exMsg) {
 	v_ec[13] = [1, v_exceptionType, v_exMsg];
 	return true;
 };
-
 
 var v_generatePrimitiveMethodReference = function(v_lookup, v_globalNameId, v_context) {
 	var v_functionId = v_resolvePrimitiveMethodName2(v_lookup, v_context[0], v_globalNameId);
@@ -613,7 +575,6 @@ var v_generatePrimitiveMethodReference = function(v_lookup, v_globalNameId, v_co
 	}
 	return [9, [4, v_context, 0, v_functionId]];
 };
-
 
 var v_generateTokenListFromPcs = function(v_pcs) {
 	var v_output = [];
@@ -635,7 +596,6 @@ var v_generateTokenListFromPcs = function(v_pcs) {
 	}
 	return v_output;
 };
-
 
 var v_getBinaryOpFromId = function(v_id) {
 	switch (v_id) {
@@ -674,7 +634,6 @@ var v_getBinaryOpFromId = function(v_id) {
 	}
 };
 
-
 var v_getClassTable = function(v_p, v_classId) {
 	var v_oldTable = v_p[20];
 	var v_oldLength = v_oldTable.length;
@@ -695,7 +654,6 @@ var v_getClassTable = function(v_p, v_classId) {
 	return v_newTable;
 };
 
-
 var v_getExecutionContext = function(v_id) {
 	var v_p = C$common$programData;
 	if ((v_id == -1)) {
@@ -707,14 +665,12 @@ var v_getExecutionContext = function(v_id) {
 	return null;
 };
 
-
 var v_getFloat = function(v_num) {
 	if ((v_num[0] == 4)) {
 		return v_num[1];
 	}
 	return (v_num[1] + 0.0);
 };
-
 
 var v_getFunctionTable = function(v_p, v_functionId) {
 	var v_oldTable = v_p[21];
@@ -736,12 +692,10 @@ var v_getFunctionTable = function(v_p, v_functionId) {
 	return v_newTable;
 };
 
-
 var v_getNativeDataItem = function(v_objValue, v_index) {
 	var v_obj = v_objValue[1];
 	return v_obj[3][v_index];
 };
-
 
 var v_getTypeFromId = function(v_id) {
 	switch (v_id) {
@@ -767,7 +721,6 @@ var v_getTypeFromId = function(v_id) {
 	return null;
 };
 
-
 var v_increaseLocalsStackCapacity = function(v_ec, v_newScopeSize) {
 	var v_oldLocals = v_ec[5];
 	var v_oldSetIndicator = v_ec[6];
@@ -785,7 +738,6 @@ var v_increaseLocalsStackCapacity = function(v_ec, v_newScopeSize) {
 	v_ec[6] = v_newSetIndicator;
 	return 0;
 };
-
 
 var v_initialize_constant_values = function() {
 	var v_i = 0;
@@ -805,7 +757,6 @@ var v_initialize_constant_values = function() {
 	v_INTEGER_NEGATIVE_CACHE[1] = v_VALUE_INT_NEG_ONE;
 	return 0;
 };
-
 
 var v_initializeClass = function(v_pc, v_p, v_args, v_className) {
 	var v_i = 0;
@@ -907,7 +858,6 @@ var v_initializeClass = function(v_pc, v_p, v_args, v_className) {
 	return 0;
 };
 
-
 var v_initializeFunction = function(v_p, v_args, v_currentPc, v_stringArg) {
 	var v_functionId = v_args[0];
 	var v_nameId = v_args[1];
@@ -952,7 +902,6 @@ var v_initializeFunction = function(v_p, v_args, v_currentPc, v_stringArg) {
 	return v_pcJump;
 };
 
-
 var v_initLocTable = function(v_row) {
 	var v_classId = v_row[0];
 	var v_memberCount = v_row[1];
@@ -978,7 +927,6 @@ var v_initLocTable = function(v_row) {
 	return 0;
 };
 
-
 var v_interpret = function(v_executionContextId) {
 	var v_output = v_interpretImpl(v_executionContextId);
 	while ((v_output[0] == 5)) {
@@ -986,7 +934,6 @@ var v_interpret = function(v_executionContextId) {
 	}
 	return v_output;
 };
-
 
 var v_interpreterFinished = function(v_ec) {
 	if ((v_ec != null)) {
@@ -999,7 +946,6 @@ var v_interpreterFinished = function(v_ec) {
 	return [1, null];
 };
 
-
 var v_interpreterGetExecutionContext = function(v_executionContextId) {
 	var v_p = C$common$programData;
 	var v_executionContexts = v_p[0];
@@ -1008,7 +954,6 @@ var v_interpreterGetExecutionContext = function(v_executionContextId) {
 	}
 	return v_executionContexts[v_executionContextId];
 };
-
 
 var v_interpretImpl = function(v_executionContextId) {
 	var v_p = C$common$programData;
@@ -4318,7 +4263,6 @@ var v_interpretImpl = function(v_executionContextId) {
 	}
 };
 
-
 var v_isClassASubclassOf = function(v_subClassId, v_parentClassId) {
 	if ((v_subClassId == v_parentClassId)) {
 		return true;
@@ -4336,7 +4280,6 @@ var v_isClassASubclassOf = function(v_subClassId, v_parentClassId) {
 	return false;
 };
 
-
 var v_isPcFromCore = function(v_pc) {
 	var v_p = C$common$programData;
 	var v_tokens = v_p[10][v_pc];
@@ -4347,7 +4290,6 @@ var v_isPcFromCore = function(v_pc) {
 	var v_filename = v_tokenHelperGetFileLine(v_token[2], 0);
 	return "[Core]" == v_filename;
 };
-
 
 var v_loadByteCode = function() {
 	var v_raw = C$bytecode;
@@ -4415,7 +4357,6 @@ var v_loadByteCode = function() {
 	return [v_ops, v_iargs, v_sargs];
 };
 
-
 var v_main = function() {
 	v_initialize_constant_values();
 	var v_resources = v_resource_manager_initialize();
@@ -4442,7 +4383,6 @@ var v_main = function() {
 	return 0;
 };
 
-
 var v_markClassAsInitialized = function(v_stack, v_classId) {
 	var v_p = C$common$programData;
 	var v_classInfo = v_p[20][v_stack[8]];
@@ -4450,7 +4390,6 @@ var v_markClassAsInitialized = function(v_stack, v_classId) {
 	v_p[22].pop();
 	return 0;
 };
-
 
 var v_maybeInvokeStaticConstructor = function(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, v_intOutParam) {
 	C$common$intBuffer16[0] = 0;
@@ -4478,7 +4417,6 @@ var v_maybeInvokeStaticConstructor = function(v_p, v_ec, v_stack, v_classInfo, v
 	return [v_functionInfo[2], v_ec[7], v_currentFrameLocalsEnd, (v_currentFrameLocalsEnd + v_newFrameLocalsSize), v_stack, false, null, v_valueStackSize, v_classId, (v_stack[9] + 1), 0, null];
 };
 
-
 var v_multiplyString = function(v_strValue, v_str, v_n) {
 	if ((v_n <= 2)) {
 		if ((v_n == 1)) {
@@ -4498,7 +4436,6 @@ var v_multiplyString = function(v_strValue, v_str, v_n) {
 	return v_buildString(v_str);
 };
 
-
 var v_nextPowerOf2 = function(v_value) {
 	if ((((v_value - 1) & v_value) == 0)) {
 		return v_value;
@@ -4510,11 +4447,9 @@ var v_nextPowerOf2 = function(v_value) {
 	return v_output;
 };
 
-
 var v_noop = function() {
 	return 0;
 };
-
 
 var v_performListSlice = function(v_ec, v_row) {
 	var v_arg1 = null;
@@ -4691,14 +4626,12 @@ var v_performListSlice = function(v_ec, v_row) {
 	return v_value;
 };
 
-
 var v_prepareToSuspend = function(v_ec, v_stack, v_valueStackSize, v_currentPc) {
 	v_ec[1] = v_stack;
 	v_ec[2] = v_valueStackSize;
 	v_stack[0] = (v_currentPc + 1);
 	return 0;
 };
-
 
 var v_primitiveMethodsInitializeLookup = function(v_nameLookups) {
 	var v_length = Object.keys(v_nameLookups).length;
@@ -4816,7 +4749,6 @@ var v_primitiveMethodsInitializeLookup = function(v_nameLookups) {
 	return v_lookup;
 };
 
-
 var v_primitiveMethodWrongArgCountError = function(v_name, v_expected, v_actual) {
 	var v_output = "";
 	if ((v_expected == 0)) {
@@ -4830,7 +4762,6 @@ var v_primitiveMethodWrongArgCountError = function(v_name, v_expected, v_actual)
 	}
 	return [v_output, " Found: ", ('' + v_actual)].join('');
 };
-
 
 var v_qsortHelper = function(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_startIndex, v_endIndex) {
 	if (((v_endIndex - v_startIndex) <= 0)) {
@@ -4860,7 +4791,6 @@ var v_qsortHelper = function(v_keyStringList, v_keyNumList, v_parallelList, v_is
 	v_qsortHelper(v_keyStringList, v_keyNumList, v_parallelList, v_isString, (v_midIndex + 1), v_endIndex);
 	return 0;
 };
-
 
 var v_read_integer = function(v_pindex, v_raw, v_length, v_alphaNums) {
 	var v_num = 0;
@@ -4896,12 +4826,10 @@ var v_read_integer = function(v_pindex, v_raw, v_length, v_alphaNums) {
 	return v_num;
 };
 
-
 var v_read_string = function(v_pindex, v_raw, v_length, v_alphaNums) {
 	var v_b64 = v_read_till(v_pindex, v_raw, v_length, "%");
 	return C$common$base64ToString(v_b64);
 };
-
 
 var v_read_till = function(v_index, v_raw, v_length, v_end) {
 	var v_output = [];
@@ -4919,7 +4847,6 @@ var v_read_till = function(v_index, v_raw, v_length, v_end) {
 	return v_output.join('');
 };
 
-
 var v_reallocIntArray = function(v_original, v_requiredCapacity) {
 	var v_oldSize = v_original.length;
 	var v_size = v_oldSize;
@@ -4934,7 +4861,6 @@ var v_reallocIntArray = function(v_original, v_requiredCapacity) {
 	}
 	return v_output;
 };
-
 
 var v_Reflect_allClasses = function() {
 	var v_p = C$common$programData;
@@ -4951,7 +4877,6 @@ var v_Reflect_allClasses = function() {
 	}
 	return [6, v_valueList];
 };
-
 
 var v_Reflect_getMethods = function(v_ec, v_methodSource) {
 	var v_p = C$common$programData;
@@ -4975,7 +4900,6 @@ var v_Reflect_getMethods = function(v_ec, v_methodSource) {
 	return [6, v_methodList];
 };
 
-
 var v_registerLibraryFunction = function(v_functionPointer, v_libRegObjRaw, v_functionName, v_argCount) {
 	var v_libRegObj = v_libRegObjRaw;
 	var v_functionPointersById = v_libRegObj[0];
@@ -4993,7 +4917,6 @@ var v_registerLibraryFunction = function(v_functionPointer, v_libRegObjRaw, v_fu
 	}
 	return 0;
 };
-
 
 var v_resetLocalsStackTokens = function(v_ec, v_stack) {
 	var v_localsStack = v_ec[5];
@@ -5023,7 +4946,6 @@ var v_resetLocalsStackTokens = function(v_ec, v_stack) {
 	v_ec[7] = 1;
 	return -1;
 };
-
 
 var v_resolvePrimitiveMethodName2 = function(v_lookup, v_type, v_globalNameId) {
 	var v_output = v_lookup[v_globalNameId];
@@ -5120,7 +5042,6 @@ var v_resolvePrimitiveMethodName2 = function(v_lookup, v_type, v_globalNameId) {
 	return -1;
 };
 
-
 var v_resource_manager_getResourceOfType = function(v_userPath, v_type) {
 	var v_p = C$common$programData;
 	var v_db = v_p[27];
@@ -5138,7 +5059,6 @@ var v_resource_manager_getResourceOfType = function(v_userPath, v_type) {
 	}
 	return v_VALUE_NULL;
 };
-
 
 var v_resource_manager_initialize = function() {
 	var v_filesPerDirectoryBuilder = {};
@@ -5209,7 +5129,6 @@ var v_resource_manager_initialize = function() {
 	return [v_filesPerDirectorySorted, v_fileInfo, v_dataList];
 };
 
-
 var v_resource_manager_populate_directory_lookup = function(v_dirs, v_path) {
 	var v_parts = v_path.split("/");
 	var v_pathBuilder = "";
@@ -5235,7 +5154,6 @@ var v_resource_manager_populate_directory_lookup = function(v_dirs, v_path) {
 	return 0;
 };
 
-
 var v_runInterpreter = function(v_executionContextId) {
 	var v_p = C$common$programData;
 	var v_result = v_interpret(v_executionContextId);
@@ -5260,7 +5178,6 @@ var v_runInterpreter = function(v_executionContextId) {
 	return v_status;
 };
 
-
 var v_runInterpreterWithFunctionPointer = function(v_fpValue, v_args) {
 	var v_p = C$common$programData;
 	var v_newId = (v_p[1] + 1);
@@ -5282,7 +5199,6 @@ var v_runInterpreterWithFunctionPointer = function(v_fpValue, v_args) {
 	return v_runInterpreter(v_newId);
 };
 
-
 var v_runShutdownHandlers = function() {
 	var v_p = C$common$programData;
 	while ((v_p[39].length > 0)) {
@@ -5293,14 +5209,12 @@ var v_runShutdownHandlers = function() {
 	return 0;
 };
 
-
 var v_sortHelperIsRevOrder = function(v_keyStringList, v_keyNumList, v_isString, v_indexLeft, v_indexRight) {
 	if (v_isString) {
 		return (v_keyStringList[v_indexLeft].localeCompare(v_keyStringList[v_indexRight]) > 0);
 	}
 	return (v_keyNumList[v_indexLeft] > v_keyNumList[v_indexRight]);
 };
-
 
 var v_sortHelperSwap = function(v_keyStringList, v_keyNumList, v_values, v_isString, v_index1, v_index2) {
 	if ((v_index1 == v_index2)) {
@@ -5322,7 +5236,6 @@ var v_sortHelperSwap = function(v_keyStringList, v_keyNumList, v_values, v_isStr
 	}
 	return 0;
 };
-
 
 var v_sortLists = function(v_keyList, v_parallelList, v_intOutParam) {
 	C$common$intBuffer16[0] = 0;
@@ -5375,7 +5288,6 @@ var v_sortLists = function(v_keyList, v_parallelList, v_intOutParam) {
 	return 0;
 };
 
-
 var v_stackItemIsLibrary = function(v_stackInfo) {
 	if ((v_stackInfo.charAt(0) != "[")) {
 		return false;
@@ -5383,7 +5295,6 @@ var v_stackItemIsLibrary = function(v_stackInfo) {
 	var v_cIndex = v_stackInfo.indexOf(":");
 	return ((v_cIndex > 0) && (v_cIndex < v_stackInfo.indexOf("]")));
 };
-
 
 var v_stringDecode = function(v_encoded) {
 	if (!(v_encoded.indexOf("%") != -1)) {
@@ -5404,7 +5315,6 @@ var v_stringDecode = function(v_encoded) {
 	}
 	return v_encoded;
 };
-
 
 var v_stringFromHex = function(v_encoded) {
 	v_encoded = v_encoded.toUpperCase();
@@ -5433,16 +5343,13 @@ var v_stringFromHex = function(v_encoded) {
 	return v_output.join("");
 };
 
-
 var v_suspendInterpreter = function() {
 	return [2, null];
 };
 
-
 var v_suspendInterpreterWithLock = function() {
 	return [4, null];
 };
-
 
 var v_tokenDataImpl = function(v_row) {
 	var v_p = C$common$programData;
@@ -5459,7 +5366,6 @@ var v_tokenDataImpl = function(v_row) {
 	v_tokens.push([v_line, v_col, v_file]);
 	return 0;
 };
-
 
 var v_tokenHelperConvertPcsToStackTraceStrings = function(v_pcs) {
 	var v_p = C$common$programData;
@@ -5485,7 +5391,6 @@ var v_tokenHelperConvertPcsToStackTraceStrings = function(v_pcs) {
 	return v_output;
 };
 
-
 var v_tokenHelperGetFileLine = function(v_fileId, v_lineNum) {
 	var v_p = C$common$programData;
 	var v_sourceCode = v_p[12][v_fileId];
@@ -5494,7 +5399,6 @@ var v_tokenHelperGetFileLine = function(v_fileId, v_lineNum) {
 	}
 	return v_sourceCode.split("\n")[v_lineNum];
 };
-
 
 var v_tokenHelperGetFormattedPointerToToken = function(v_token) {
 	var v_line = v_tokenHelperGetFileLine(v_token[2], (v_token[0] + 1));
@@ -5516,17 +5420,14 @@ var v_tokenHelperGetFormattedPointerToToken = function(v_token) {
 	return [v_line, "\n", v_line2].join('');
 };
 
-
 var v_tokenHelplerIsFilePathLibrary = function(v_fileId, v_allFiles) {
 	var v_filename = v_tokenHelperGetFileLine(v_fileId, 0);
 	return !C$common$stringEndsWith(v_filename.toLowerCase(), ".cry");
 };
 
-
 var v_uncaughtExceptionResult = function(v_exception) {
 	return [3, v_unrollExceptionOutput(v_exception)];
 };
-
 
 var v_unrollExceptionOutput = function(v_exceptionInstance) {
 	var v_objInstance = v_exceptionInstance[1];
@@ -5555,7 +5456,6 @@ var v_unrollExceptionOutput = function(v_exceptionInstance) {
 	return [v_stackTrace, v_codeFormattedPointer, "\n", v_exceptionName, ": ", v_message].join('');
 };
 
-
 var v_valueStackDepthImpl = function(v_row) {
 	var v_p = C$common$programData;
 	var v_totalPcCount = v_p[2].length;
@@ -5576,7 +5476,6 @@ var v_valueStackDepthImpl = function(v_row) {
 	return 0;
 };
 
-
 var v_valueStackIncreaseCapacity = function(v_ec) {
 	var v_stack = v_ec[4];
 	var v_oldCapacity = v_stack.length;
@@ -5590,7 +5489,6 @@ var v_valueStackIncreaseCapacity = function(v_ec) {
 	v_ec[4] = v_newStack;
 	return v_newStack;
 };
-
 
 var v_valueToString = function(v_wrappedValue) {
 	var v_type = v_wrappedValue[0];
@@ -5682,17 +5580,14 @@ var v_valueToString = function(v_wrappedValue) {
 	return "<unknown>";
 };
 
-
 var v_vm_getCurrentExecutionContextId = function() {
 	var v_p = C$common$programData;
 	return v_p[1];
 };
 
-
 var v_vm_suspend = function(v_status) {
 	return v_vm_suspend_for_context(v_getExecutionContext(-1), 1);
 };
-
 
 var v_vm_suspend_for_context = function(v_ec, v_status) {
 	v_ec[11] = true;
@@ -5700,8 +5595,6 @@ var v_vm_suspend_for_context = function(v_ec, v_status) {
 	return 0;
 };
 
-
 var v_vm_suspend_with_status = function(v_status) {
 	return v_vm_suspend_for_context(v_getExecutionContext(-1), v_status);
 };
-

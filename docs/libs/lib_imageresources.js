@@ -9,7 +9,6 @@
 	C$common$registerLibraryFunction('imageresources', v_libRegData, "yieldRequiredByPlatform", 0);
 };
 
-
 var v_lib_imageresources_function_blit = function(v_args) {
 	var v_object1 = null;
 	var v_objInstance1 = v_args[0][1];
@@ -17,7 +16,6 @@ var v_lib_imageresources_function_blit = function(v_args) {
 	C$imageresources$imageResourceBlitImage(v_objInstance1[3][0], v_objInstance2[3][0], v_args[2][1], v_args[3][1], v_args[4][1], v_args[5][1], v_args[6][1], v_args[7][1]);
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_imageresources_function_checkLoaderIsDone = function(v_args) {
 	var v_objInstance1 = v_args[0][1];
@@ -27,16 +25,13 @@ var v_lib_imageresources_function_checkLoaderIsDone = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_imageresources_function_flushImageChanges = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_imageresources_function_getManifestString = function(v_args) {
 	return v_buildString(C$imageresources$getImageResourceManifest());
 };
-
 
 var v_lib_imageresources_function_loadAsynchronous = function(v_args) {
 	var v_objInstance1 = v_args[0][1];
@@ -51,11 +46,9 @@ var v_lib_imageresources_function_loadAsynchronous = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_imageresources_function_loadSynchronous = function(v_args) {
 	return v_VALUE_NULL;
 };
-
 
 var v_lib_imageresources_function_nativeImageDataInit = function(v_args) {
 	var v_objInstance1 = v_args[0][1];
@@ -70,12 +63,10 @@ var v_lib_imageresources_function_nativeImageDataInit = function(v_args) {
 	return v_VALUE_NULL;
 };
 
-
 var v_lib_imageresources_function_yieldRequiredByPlatform = function(v_args) {
 	var v_output = v_VALUE_FALSE;
 	v_output = v_VALUE_TRUE;
 	return v_output;
 };
-
 
 C$common$scrapeLibFuncNames('imageresources');

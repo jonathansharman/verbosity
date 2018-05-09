@@ -23,7 +23,7 @@
     
     <var type="string">
       <id>initial_scene</id>
-      <value>MainScene</value>
+      <value>LoadingScene</value>
     </var>
 	
     <var type="boolean">

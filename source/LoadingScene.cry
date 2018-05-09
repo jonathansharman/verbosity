@@ -1,0 +1,28 @@
+import Graphics2D;
+import Graphics2DText;
+import TwoCansAlpha2;
+
+class LoadingScene : AbstractScene {
+	field loadingImage;
+	field firstCall = true;
+
+	constructor() : base() {
+		// Create loading image.
+		font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setColor(0, 0, 0).setSize(32);
+		this.loadingImage = font.render("Loading...");
+	}
+
+	function update(inputManager, events) {
+		if (this.firstCall) {
+			this.firstCall = false;
+		} else {
+			this.switchScene(new MainScene());
+		}
+	}
+
+	function render() {
+		Graphics2D.Draw.fill(255, 255, 255);
+
+		this.loadingImage.draw(20, 20);
+	}
+}
