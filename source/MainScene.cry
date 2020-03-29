@@ -3,7 +3,7 @@ import Graphics2DText;
 import Math;
 import Random;
 import Resources;
-import TwoCansAlpha2;
+import TwoCansAlpha4;
 
 const X_RES = 640;
 const Y_RES = 480;
@@ -347,7 +347,8 @@ class MainScene : AbstractScene {
 		// Try current guess.
 		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ENTER)) {
 			this.flashTimer = FLASH_DURATION;
-			this.flashWordSet = { this.current: true };
+			this.flashWordSet = {};
+			this.flashWordSet[this.current] = true;
 			if (this.foundWordMap.contains(this.current)) {
 				if (this.foundWordMap[this.current]) {
 					// Already found this word.

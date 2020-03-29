@@ -1,6 +1,6 @@
 import Graphics2D;
 import Graphics2DText;
-import TwoCansAlpha2;
+import TwoCansAlpha4;
 
 class LoadingScene : AbstractScene {
 	field loadingImage;
