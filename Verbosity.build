@@ -1,7 +1,7 @@
 ﻿{
 	"title": "Verbosity",
 	"id": "Verbosity",
-	"description": "Classic Reversi, player vs. AI.",
+	"description": "Text Twist clone.",
 	"icons": ["assets/icon32.png", "assets/icon256.png"],
 
 	"deps": [
