@@ -1,28 +1,49 @@
 import Graphics2D;
 import Graphics2DText;
-import TwoCansAlpha2;
+import Resources;
+import TwoCansAlpha4;
+
+const CHUNK_SIZE = 2000;
 
 class LoadingScene : AbstractScene {
-	field loadingImage;
+	field font;
+	field wordsList;
+	field wordsIdx;
+	field wordsTree;
 	field firstCall = true;
 
-	constructor() : base() {
-		// Create loading image.
-		font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setColor(0, 0, 0).setSize(32);
-		this.loadingImage = font.render("Loading...");
+	constructor() {
+		this.font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setColor(0, 0, 0).setSize(32);
+
+		// Load word list from disk.
+		this.wordsList = Resources.readText("words.txt").split('\n');
+		this.wordsIdx = 0;
+		this.wordsTree = new WordTree();
 	}
 
 	function update(inputManager, events) {
 		if (this.firstCall) {
 			this.firstCall = false;
-		} else {
-			this.switchScene(new MainScene());
+			return;
 		}
+
+		// Load word list into word tree in chunks.
+		for (i = this.wordsIdx; i < this.wordsIdx + CHUNK_SIZE && i < this.wordsList.length; ++i) {
+			this.wordsTree.insert(this.wordsList[i]);
+		}
+
+		if (i == this.wordsList.length) {
+			// Finished loading all words.
+			this.switchScene(new MainScene(this.wordsTree));
+		}
+
+		this.wordsIdx += CHUNK_SIZE;
 	}
 
 	function render() {
 		Graphics2D.Draw.fill(255, 255, 255);
 
-		this.loadingImage.draw(20, 20);
+		// Draw loading message.
+		this.font.render("Loading... " + (100 * this.wordsIdx / (this.wordsList.length - 1)) + "%").draw(20, 20);
 	}
 }

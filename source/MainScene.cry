@@ -3,12 +3,12 @@ import Graphics2DText;
 import Math;
 import Random;
 import Resources;
-import TwoCansAlpha2;
+import TwoCansAlpha4;
 
-const X_RES = 640;
-const Y_RES = 480;
+const X_RES = $var["screen_width"];
+const Y_RES = $var["screen_height"];
 
-const FLASH_DURATION = 24;
+const FLASH_DURATION = 48;
 
 const N_VOWELS = 5;
 const N_CONSONANTS = 7;
@@ -202,6 +202,7 @@ class MainScene : AbstractScene {
 	function reset() {
 		this.current = "";
 		this.flashTimer = 0;
+		this.flashWordSet = {};
 
 		// Add random letters.
 		this.letters = [];
@@ -216,7 +217,7 @@ class MainScene : AbstractScene {
 		// Find possible words with at least three letters.
 		possibleWords = this.words
 			.getWordsUsing(stringToCharCounts(this.letters))
-			.filter(lengthThreeOrMore);
+			.filter(word => word.length >= 3);
 		// Ensure there's at least one valid word.
 		if (possibleWords.length == 0) {
 			this.reset();
@@ -253,9 +254,8 @@ class MainScene : AbstractScene {
 		}
 	}
 
-	constructor() : base() {
-		// Load word set from disk.
-		this.words = new WordTree(Resources.readText("words.txt").split('\n'));
+	constructor(words) {
+		this.words = words;
 
 		// Render letters.
 		font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setSize(FONT_SIZE);
@@ -347,7 +347,8 @@ class MainScene : AbstractScene {
 		// Try current guess.
 		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ENTER)) {
 			this.flashTimer = FLASH_DURATION;
-			this.flashWordSet = { this.current: true };
+			this.flashWordSet = {};
+			this.flashWordSet[this.current] = true;
 			if (this.foundWordMap.contains(this.current)) {
 				if (this.foundWordMap[this.current]) {
 					// Already found this word.
@@ -370,7 +371,7 @@ class MainScene : AbstractScene {
 	}
 
 	function drawWord(string, x, y, xAlign, yAlign) {
-		color = this.flashTimer % 6 >= 3 && this.flashWordSet.contains(string)
+		color = this.flashTimer % 12 >= 6 && this.flashWordSet.contains(string)
 			? this.flashColor
 			: TextColor.BLACK
 			;
@@ -385,7 +386,7 @@ class MainScene : AbstractScene {
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw available letters.
-		this.drawWord(this.letters, 0, 0, LEFT, TOP);
+		this.drawWord(this.letters.join(""), 0, 0, LEFT, TOP);
 
 		// Draw current guess.
 		this.drawWord(this.current, 0, 2 * ROW_HEIGHT, LEFT, TOP);
@@ -399,7 +400,7 @@ class MainScene : AbstractScene {
 				col = 0;
 			}
 			this.drawWord
-				( this.foundWordMap[word] ? word : ['-'] * word.length
+				( this.foundWordMap[word] ? word : "-" * word.length
 				, col * COL_WIDTH
 				, row * ROW_HEIGHT
 				, LEFT
