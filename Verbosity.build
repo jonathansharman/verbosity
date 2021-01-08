@@ -1,59 +1,61 @@
-﻿<build>
-	<projectname>Verbosity</projectname>
-	<title>Verbosity</title>
-	<description>Text Twist clone.</description>
+﻿{
+	"title": "Verbosity",
+	"id": "Verbosity",
+	"description": "Text Twist clone.",
+	"icons": ["assets/icon32.png", "assets/icon256.png"],
 
-	<crayonpath>D:\Documents\programming\crayon\TwoCansSDK</crayonpath>
-	<source>source</source>
-	<compilerlocale>en</compilerlocale>
-	<output>output/%TARGET_NAME%</output>
+	"deps": [
+		"%TWOCANS_SDK%/TwoCansAlpha4"
+	],
 
-	<imagesheets>
-		<sheet id="twocans_everything">
-			<prefix>*</prefix>
-		</sheet>
-	</imagesheets>
-	
-	<guidseed>com.jsharman.Verbosity,v1,%TARGET_NAME%</guidseed>
+	"source": "source",
+	"compilerlocale": "en",
+	"output": "output/%TARGET_NAME%",
+	"delegate-main-to": "TwoCansAlpha4",
 
-    <var type="string">
-      <id>game_title</id>
-      <value>Verbosity</value>
-    </var>
-    
-    <var type="string">
-      <id>initial_scene</id>
-      <value>LoadingScene</value>
-    </var>
-	
-    <var type="boolean">
-      <id>use_60_fps</id>
-      <value>false</value>
-    </var>
-	
-    <var type="boolean">
-      <id>enable_wasd</id>
-      <value>true</value>
-    </var>
-	
-	<target name="csharp">
-		<platform>csharp-app</platform>
-	</target>
-	
-	<target name="java">
-		<platform>java-app</platform>
-	</target>
-	
-	<target name="python">
-		<platform>python-app</platform>
-	</target>
-	
-	<target name="ios">
-		<platform>javascript-app-ios</platform>
-	</target>
-	
-	<target name="javascript">
-		<platform>javascript-app</platform>
-		<jsfileprefix>/website/relative/path/from/domain/root</jsfileprefix>
-	</target>
-</build>
+	"image-sheets": [
+		{
+			"id": "twocans_everything",
+			"prefix": "*"
+		}
+	],
+
+	"guidseed": "com.jsharman.Verbosity,v1,%TARGET_NAME%",
+
+	"vars": [
+		{ "name": "game_title", "value": "Verbosity" },
+		{ "name": "initial_scene", "value": "LoadingScene" },
+		{ "name": "screen_width", "value": 640 },
+		{ "name": "screen_height", "value": 480 },
+		{ "name": "use_60_fps", "value": false },
+		{ "name": "enable_wasd", "value": true },
+		{ "name": "thumbnail", "value": "assets/icon200.png" }
+	],
+
+	"targets": [
+		{
+			"name": "csharp",
+			"platform": "csharp-app"
+		},
+		{
+			"name": "java",
+			"platform": "java-app"
+		},
+		{
+			"name": "python",
+			"platform": "python-app"
+		},
+		{
+			"name": "ios",
+			"platform": "javascript-app-ios"
+		},
+		{
+			"name": "android",
+			"platform": "javascript-app-android"
+		},
+		{
+			"name": "javascript",
+			"platform": "javascript-app"
+		}
+	]
+}
