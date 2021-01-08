@@ -13,7 +13,6 @@ class LoadingScene : AbstractScene {
 	field firstCall = true;
 
 	constructor() {
-	constructor() {
 		this.font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setColor(0, 0, 0).setSize(32);
 
 		// Load word list from disk.
