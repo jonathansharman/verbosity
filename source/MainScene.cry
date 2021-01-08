@@ -48,8 +48,15 @@ function getLength(list) { return list.length; }
 
 class MainScene : AbstractScene {
 	static field vowels = ["A", "E", "I", "O", "U"];
-	static field consonants = ["B", "C", "D", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"];
-	static field alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+	static field consonants =
+		[ "B", "C", "D", "F", "G", "H", "J"
+		, "K", "L", "M", "N", "P", "Q", "R"
+		, "S", "T", "V", "W", "X", "Y", "Z"
+		];
+	static field alphabet =
+		[ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"
+		, "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+		];
 	static field keys;
 	static field letterToKey;
 	static field keyToLetter;
@@ -145,8 +152,7 @@ class MainScene : AbstractScene {
 
 		// Find possible words with at least three letters.
 		possibleWords = this.words
-			.getWordsUsing(stringToCharCounts(this.letters))
-			.filter(word => word.length >= 3);
+			.getWordsUsing(stringToCharCounts(this.letters));
 		// Ensure there's at least one valid word.
 		if (possibleWords.length == 0) {
 			this.reset();
@@ -180,6 +186,7 @@ class MainScene : AbstractScene {
 		}
 		nrows = row + 1;
 		if (nrows < MIN_ROWS || nrows > MAX_ROWS) {
+			print("Overflow!");
 			this.reset();
 		}
 	}
