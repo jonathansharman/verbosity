@@ -186,7 +186,6 @@ class MainScene : AbstractScene {
 		}
 		nrows = row + 1;
 		if (nrows < MIN_ROWS || nrows > MAX_ROWS) {
-			print("Overflow!");
 			this.reset();
 		}
 	}
