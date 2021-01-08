@@ -24,8 +24,8 @@ const ROW_HEIGHT = 32.0;
 const TRAY_COL_WIDTH = 27.0;
 const BOARD_COL_WIDTH = 21.0;
 const N_COLS = floor((X_RES - 2.0 * SIDE_PADDING) / BOARD_COL_WIDTH);
-const MIN_ROWS = 10;
-const MAX_ROWS = 15;
+const MIN_ROWS = 12;
+const MAX_ROWS = 14;
 const BOARD_TOP_PADDING = 3.5 * ROW_HEIGHT;
 const SIDE_PADDING = 0.5 * BOARD_COL_WIDTH;
 const SCORE_BAR_HEIGHT = 20;
@@ -125,11 +125,13 @@ class MainScene : AbstractScene {
 	field flashTimer;
 	field flashColor;
 	field flashWordSet;
+	field missedWordSet;
 
 	function reset() {
 		this.current = "";
 		this.flashTimer = 0;
 		this.flashWordSet = {};
+		this.missedWordSet = {};
 
 		// Add random letters.
 		this.letters = [];
@@ -230,12 +232,11 @@ class MainScene : AbstractScene {
 		for (word : this.foundWordMap.keys()) {
 			if (!this.foundWordMap[word]) {
 				this.foundWordMap[word] = true;
-				this.flashWordSet[word] = true;
+				this.missedWordSet[word] = true;
 				revealedAny = true;
 			}
 		}
 		if (revealedAny) {
-			this.flashTimer = FLASH_DURATION;
 			this.flashColor = this.currentScore < floor(REQUIRED_SCORE_RATIO * this.maxScore)
 				? TextColor.RED
 				: TextColor.GREEN
@@ -313,10 +314,14 @@ class MainScene : AbstractScene {
 	}
 
 	function drawWord(string, x, y, traySized) {
-		color = this.flashTimer % 12 >= 6 && this.flashWordSet.contains(string)
-			? this.flashColor
-			: TextColor.BLACK
-			;
+		if (this.missedWordSet.contains(string)) {
+			color = this.flashColor;
+		} else {
+			color = this.flashTimer % 12 >= 6 && this.flashWordSet.contains(string)
+				? this.flashColor
+				: TextColor.BLACK
+				;
+		}
 		for (letter : string) {
 			image = traySized ? this.trayLetterToImage[letter][color] : this.boardLetterToImage[letter][color];
 			image.draw(x, y);
@@ -331,7 +336,7 @@ class MainScene : AbstractScene {
 		this.drawWord(this.letters.join(""), SIDE_PADDING, 0, true);
 
 		// Draw current guess.
-		this.drawWord(this.current, SIDE_PADDING, 2 * ROW_HEIGHT, false);
+		this.drawWord(this.current, SIDE_PADDING, 1.5 * ROW_HEIGHT, false);
 
 		// Draw found and missing words.
 		row = 0;
