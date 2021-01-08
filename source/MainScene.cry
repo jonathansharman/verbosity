@@ -10,101 +10,27 @@ const Y_RES = $var["screen_height"];
 
 const FLASH_DURATION = 48;
 
+// The number of vowels to include in the tray.
 const N_VOWELS = 5;
+// The number of consonants to include in the tray.
 const N_CONSONANTS = 7;
-const N_LETTERS = N_VOWELS + N_CONSONANTS;
 
+// The proportion of possible words required to be found in order to win.
 const REQUIRED_SCORE_RATIO = 0.25;
 
-const FONT_SIZE = 14;
-const ROW_HEIGHT = 20;
-const COL_WIDTH = 15;
-const N_COLS = floor(X_RES / COL_WIDTH);
+const TRAY_FONT_SIZE = 24;
+const BOARD_FONT_SIZE = 18;
+const ROW_HEIGHT = 32.0;
+const TRAY_COL_WIDTH = 27.0;
+const BOARD_COL_WIDTH = 21.0;
+const N_COLS = floor((X_RES - 2.0 * SIDE_PADDING) / BOARD_COL_WIDTH);
 const MIN_ROWS = 10;
 const MAX_ROWS = 15;
+const BOARD_TOP_PADDING = 3.5 * ROW_HEIGHT;
+const SIDE_PADDING = 0.5 * BOARD_COL_WIDTH;
 const SCORE_BAR_HEIGHT = 20;
 
-const LEFT = 0;
-const CENTER = 0.5;
-const RIGHT = 1;
-const TOP = 0;
-const MIDDLE = 0.5;
-const BOTTOM = 1;
-
 enum TextColor { BLACK, GREEN, YELLOW, RED }
-
-class WordTree {
-	field children = {};
-	field isWord = false;
-
-	constructor(words = []) {
-		for (word : words) {
-			this.insert(word);
-		}
-	}
-
-	// Inserts the given word into the tree. Duplicate insertions have no effect.
-	function insert(word) {
-		if (word.length > 0) {
-			if (!this.children.contains(word[0])) {
-				this.children[word[0]] = new WordTree();
-			}
-			this.children[word[0]].insert(word[1:]);
-		} else {
-			this.isWord = true;
-		}
-	}
-
-	// Returns whether the given word is contained in this tree.
-	function contains(word) {
-		return word.length == 0
-			? this.isWord
-			: this.children.contains(word[0]) && this.children[word[0]].contains(word[1:])
-			;
-	}
-
-	// Returns a list of all the words in the tree with the given prefix.
-	function getWordsPrefixed(rightPrefix = "", leftPrefix = "") {
-		return rightPrefix.length == 0
-			? this.getWords(leftPrefix)
-			: this.children.contains(rightPrefix[0])
-				? this.children[rightPrefix[0]].getWordsPrefixed(rightPrefix[1:], leftPrefix + rightPrefix[0])
-				: []
-			;
-	}
-
-	// Returns a list of all the words in the tree that use only letters from the given dictionary of letters to counts.
-	function getWordsUsing(letterCounts, prefix = "") {
-		result = [];
-		if (this.isWord) {
-			result.add(prefix);
-		}
-		for (key : this.children.keys()) {
-			if (letterCounts.contains(key)) {
-				childLetterCounts = letterCounts.clone();
-				if (childLetterCounts[key] == 1) {
-					childLetterCounts.remove(key);
-				} else {
-					--childLetterCounts[key];
-				}
-				result.concat(this.children[key].getWordsUsing(childLetterCounts, prefix + key));
-			}
-		}
-		return result;
-	}
-
-	// Returns a list of all the words in the tree.
-	function getWords(prefix = "") {
-		result = [];
-		if (this.isWord) {
-			result.add(prefix);
-		}
-		for (key : this.children.keys()) {
-			result.concat(this.children[key].getWords(prefix + key));
-		}
-		return result;
-	}
-}
 
 function stringToCharCounts(string) {
 	result = {};
@@ -121,21 +47,21 @@ function lengthThreeOrMore(string) { return string.length >= 3; }
 function getLength(list) { return list.length; }
 
 class MainScene : AbstractScene {
-	static field vowels = ['A', 'E', 'I', 'O', 'U'];
-	static field consonants = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z'];
-	static field alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+	static field vowels = ["A", "E", "I", "O", "U"];
+	static field consonants = ["B", "C", "D", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"];
+	static field alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 	static field keys;
 	static field letterToKey;
 	static field keyToLetter;
 
 	static field scoreMap =
-		{ 'A': 1, 'E': 1, 'I': 1, 'O': 1, 'U': 1, 'L': 1, 'N': 1, 'S': 1, 'T': 1, 'R': 1
-		, 'D': 2, 'G': 2
-		, 'B': 3, 'C': 3, 'M': 3, 'P': 3
-		, 'F': 4, 'H': 4, 'V': 4, 'W': 4, 'Y': 4
-		, 'K': 5
-		, 'J': 8, 'X': 8
-		, 'Q': 10, 'Z': 10
+		{ "A": 1, "E": 1, "I": 1, "O": 1, "U": 1, "L": 1, "N": 1, "S": 1, "T": 1, "R": 1
+		, "D": 2, "G": 2
+		, "B": 3, "C": 3, "M": 3, "P": 3
+		, "F": 4, "H": 4, "V": 4, "W": 4, "Y": 4
+		, "K": 5
+		, "J": 8, "X": 8
+		, "Q": 10, "Z": 10
 		};
 	static function getScore(word) {
 		result = 0;
@@ -193,7 +119,8 @@ class MainScene : AbstractScene {
 	field currentScore;
 	field maxScore;
 
-	field letterToImage = {};
+	field trayLetterToImage = {};
+	field boardLetterToImage = {};
 
 	field flashTimer;
 	field flashColor;
@@ -249,7 +176,8 @@ class MainScene : AbstractScene {
 			}
 			col += word.length + 1;
 		}
-		if (row < MIN_ROWS || row > MAX_ROWS) {
+		nrows = row + 1;
+		if (nrows < MIN_ROWS || nrows > MAX_ROWS) {
 			this.reset();
 		}
 	}
@@ -257,9 +185,9 @@ class MainScene : AbstractScene {
 	constructor(words) {
 		this.words = words;
 
-		// Render letters.
-		font = FontResource.fromResource('Courier Prime.ttf').getRenderer().setSize(FONT_SIZE);
-		for (letter : MainScene.alphabet + ['-']) {
+		// Render tray letters.
+		font = FontResource.fromResource("Courier Prime.ttf").getRenderer().setSize(TRAY_FONT_SIZE);
+		for (letter : MainScene.alphabet + ["-"]) {
 			entry = {};
 			font.setColor(0, 0, 0);
 			entry[TextColor.BLACK] = font.render(letter);
@@ -269,7 +197,21 @@ class MainScene : AbstractScene {
 			entry[TextColor.YELLOW] = font.render(letter);
 			font.setColor(255, 0, 0);
 			entry[TextColor.RED] = font.render(letter);
-			this.letterToImage[letter] = entry;
+			this.trayLetterToImage[letter] = entry;
+		}
+		// Render board letters.
+		font.setSize(BOARD_FONT_SIZE);
+		for (letter : MainScene.alphabet + ["-"]) {
+			entry = {};
+			font.setColor(0, 0, 0);
+			entry[TextColor.BLACK] = font.render(letter);
+			font.setColor(0, 192, 0);
+			entry[TextColor.GREEN] = font.render(letter);
+			font.setColor(255, 192, 0);
+			entry[TextColor.YELLOW] = font.render(letter);
+			font.setColor(255, 0, 0);
+			entry[TextColor.RED] = font.render(letter);
+			this.boardLetterToImage[letter] = entry;
 		}
 
 		this.reset();
@@ -370,15 +312,15 @@ class MainScene : AbstractScene {
 		}
 	}
 
-	function drawWord(string, x, y, xAlign, yAlign) {
+	function drawWord(string, x, y, traySized) {
 		color = this.flashTimer % 12 >= 6 && this.flashWordSet.contains(string)
 			? this.flashColor
 			: TextColor.BLACK
 			;
 		for (letter : string) {
-			image = this.letterToImage[letter][color];
-			image.draw(x - floor(xAlign * image.width), y - floor(yAlign * image.height));
-			x += COL_WIDTH;
+			image = traySized ? this.trayLetterToImage[letter][color] : this.boardLetterToImage[letter][color];
+			image.draw(x, y);
+			x += traySized ? TRAY_COL_WIDTH : BOARD_COL_WIDTH;
 		}
 	}
 
@@ -386,13 +328,13 @@ class MainScene : AbstractScene {
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw available letters.
-		this.drawWord(this.letters.join(""), 0, 0, LEFT, TOP);
+		this.drawWord(this.letters.join(""), SIDE_PADDING, 0, true);
 
 		// Draw current guess.
-		this.drawWord(this.current, 0, 2 * ROW_HEIGHT, LEFT, TOP);
+		this.drawWord(this.current, SIDE_PADDING, 2 * ROW_HEIGHT, false);
 
 		// Draw found and missing words.
-		row = 4;
+		row = 0;
 		col = 0;
 		for (word : this.foundWordMap.keys()) {
 			if (col + word.length >= N_COLS) {
@@ -401,10 +343,9 @@ class MainScene : AbstractScene {
 			}
 			this.drawWord
 				( this.foundWordMap[word] ? word : "-" * word.length
-				, col * COL_WIDTH
-				, row * ROW_HEIGHT
-				, LEFT
-				, TOP
+				, col * BOARD_COL_WIDTH + SIDE_PADDING
+				, row * ROW_HEIGHT + BOARD_TOP_PADDING
+				, false
 				);
 			col += word.length + 1;
 		}

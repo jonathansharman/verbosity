@@ -1,0 +1,72 @@
+class WordTree {
+	field children = {};
+	field isWord = false;
+
+	constructor(words = []) {
+		for (word : words) {
+			this.insert(word);
+		}
+	}
+
+	// Inserts the given word into the tree. Duplicate insertions have no effect.
+	function insert(word) {
+		if (word.length > 0) {
+			if (!this.children.contains(word[0])) {
+				this.children[word[0]] = new WordTree();
+			}
+			this.children[word[0]].insert(word[1:]);
+		} else {
+			this.isWord = true;
+		}
+	}
+
+	// Returns whether the given word is contained in this tree.
+	function contains(word) {
+		return word.length == 0
+			? this.isWord
+			: this.children.contains(word[0]) && this.children[word[0]].contains(word[1:])
+			;
+	}
+
+	// Returns a list of all the words in the tree with the given prefix.
+	function getWordsPrefixed(rightPrefix = "", leftPrefix = "") {
+		return rightPrefix.length == 0
+			? this.getWords(leftPrefix)
+			: this.children.contains(rightPrefix[0])
+				? this.children[rightPrefix[0]].getWordsPrefixed(rightPrefix[1:], leftPrefix + rightPrefix[0])
+				: []
+			;
+	}
+
+	// Returns a list of all the words in the tree that use only letters from the given dictionary of letters to counts.
+	function getWordsUsing(letterCounts, prefix = "") {
+		result = [];
+		if (this.isWord) {
+			result.add(prefix);
+		}
+		for (key : this.children.keys()) {
+			if (letterCounts.contains(key)) {
+				childLetterCounts = letterCounts.clone();
+				if (childLetterCounts[key] == 1) {
+					childLetterCounts.remove(key);
+				} else {
+					--childLetterCounts[key];
+				}
+				result.concat(this.children[key].getWordsUsing(childLetterCounts, prefix + key));
+			}
+		}
+		return result;
+	}
+
+	// Returns a list of all the words in the tree.
+	function getWords(prefix = "") {
+		result = [];
+		if (this.isWord) {
+			result.add(prefix);
+		}
+		for (key : this.children.keys()) {
+			result.concat(this.children[key].getWords(prefix + key));
+		}
+		return result;
+	}
+}

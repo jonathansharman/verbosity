@@ -44,6 +44,6 @@ class LoadingScene : AbstractScene {
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw loading message.
-		this.font.render("Loading... " + (100 * this.wordsIdx / (this.wordsList.length - 1)) + "%").draw(20, 20);
+		this.font.render("Loading... " + (100 * this.wordsIdx / (this.wordsList.length - 1)) + "%").draw(10, 0);
 	}
 }
