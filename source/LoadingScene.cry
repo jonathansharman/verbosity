@@ -9,7 +9,7 @@ class LoadingScene : AbstractScene {
 	field font;
 	field wordsList;
 	field wordsIdx;
-	field wordsTree;
+	field wordTree;
 	field firstCall = true;
 
 	constructor() {
@@ -18,10 +18,11 @@ class LoadingScene : AbstractScene {
 		// Load word list from disk.
 		this.wordsList = Resources.readText("words.txt").split('\n');
 		this.wordsIdx = 0;
-		this.wordsTree = new WordTree();
+		this.wordTree = new WordTree();
 	}
 
 	function update(inputManager, events) {
+		// In order to render something immediately, don't do any work on the first call to update().
 		if (this.firstCall) {
 			this.firstCall = false;
 			return;
@@ -29,15 +30,14 @@ class LoadingScene : AbstractScene {
 
 		// Load word list into word tree in chunks.
 		for (i = this.wordsIdx; i < this.wordsIdx + CHUNK_SIZE && i < this.wordsList.length; ++i) {
-			this.wordsTree.insert(this.wordsList[i]);
-		}
-
-		if (i == this.wordsList.length) {
-			// Finished loading all words.
-			this.switchScene(new MainScene(this.wordsTree));
+			this.wordTree.insert(this.wordsList[i]);
 		}
 
 		this.wordsIdx += CHUNK_SIZE;
+		if (this.wordsIdx >= this.wordsList.length) {
+			// Finished loading all words.
+			this.switchScene(new MainScene(this.wordTree));
+		}
 	}
 
 	function render() {

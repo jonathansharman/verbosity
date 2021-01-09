@@ -18,17 +18,30 @@ const N_CONSONANTS = 7;
 // The proportion of possible words required to be found in order to win.
 const REQUIRED_SCORE_RATIO = 0.25;
 
-const TRAY_FONT_SIZE = 24;
+const SIDE_MARGIN = 0.5 * 10.0;
+
 const BOARD_FONT_SIZE = 18;
-const ROW_HEIGHT = 32.0;
-const TRAY_COL_WIDTH = 27.0;
+const BOARD_ROW_HEIGHT = 32.0;
 const BOARD_COL_WIDTH = 21.0;
-const N_COLS = floor((X_RES - 2.0 * SIDE_PADDING) / BOARD_COL_WIDTH);
-const MIN_ROWS = 12;
-const MAX_ROWS = 14;
-const BOARD_TOP_PADDING = 3.5 * ROW_HEIGHT;
-const SIDE_PADDING = 0.5 * BOARD_COL_WIDTH;
+const BOARD_N_COLS = floor((X_RES - 2.0 * SIDE_MARGIN) / BOARD_COL_WIDTH);
+const BOARD_MIN_ROWS = 12;
+const BOARD_MAX_ROWS = 14;
+const BOARD_TOP_MARGIN = 3.5 * BOARD_ROW_HEIGHT;
 const SCORE_BAR_HEIGHT = 20;
+
+const BUTTON_MARGIN_TOP = 10.0;
+const BUTTON_MARGIN_BETWEEN = 10.0;
+
+const TRAY_FONT_SIZE = 24;
+const TRAY_X = 305.0;
+const TRAY_Y = 8.0;
+const TRAY_HEIGHT = 40.0;
+const TRAY_COL_WIDTH = 27.0;
+
+const GUESS_X = TRAY_X;
+const GUESS_Y = 62.0;
+const GUESS_HEIGHT = 30.0;
+const GUESS_COL_WIDTH = BOARD_COL_WIDTH;
 
 enum TextColor { BLACK, GREEN, YELLOW, RED }
 
@@ -121,8 +134,8 @@ class MainScene : AbstractScene {
 	field foundWordMap;
 
 	field maxLength;
-	field current;
-	field letters;
+	field tray;
+	field guess;
 	field currentScore;
 	field maxScore;
 
@@ -134,25 +147,32 @@ class MainScene : AbstractScene {
 	field flashWordSet;
 	field missedWordSet;
 
+	field buttons;
+	field checkButton;
+	field shuffleButton;
+	field clearButton;
+	field deleteButton;
+	field concedeRestartButton;
+
 	function reset() {
-		this.current = "";
+		this.guess = "";
 		this.flashTimer = 0;
 		this.flashWordSet = {};
 		this.missedWordSet = {};
 
-		// Add random letters.
-		this.letters = [];
+		// Add random letters to the tray.
+		this.tray = [];
 		for (i = 0; i < N_VOWELS; ++i) {
-			this.letters.add(MainScene.vowels.choice());
+			this.tray.add(MainScene.vowels.choice());
 		}
 		for (i = 0; i < N_CONSONANTS; ++i) {
-			this.letters.add(MainScene.consonants.choice());
+			this.tray.add(MainScene.consonants.choice());
 		}
-		this.letters.shuffle();
+		this.tray.shuffle();
 
 		// Find possible words with at least three letters.
 		possibleWords = this.words
-			.getWordsUsing(stringToCharCounts(this.letters));
+			.getWordsUsing(stringToCharCounts(this.tray));
 		// Ensure there's at least one valid word.
 		if (possibleWords.length == 0) {
 			this.reset();
@@ -178,23 +198,27 @@ class MainScene : AbstractScene {
 		row = 0;
 		col = 0;
 		for (word : this.foundWordMap.keys()) {
-			if (col + word.length >= N_COLS) {
+			if (col + word.length >= BOARD_N_COLS) {
 				++row;
 				col = 0;
 			}
 			col += word.length + 1;
 		}
 		nrows = row + 1;
-		if (nrows < MIN_ROWS || nrows > MAX_ROWS) {
+		if (nrows < BOARD_MIN_ROWS || nrows > BOARD_MAX_ROWS) {
 			this.reset();
 		}
+
+		// Set concede/restart button text to concede.
+		this.concedeRestartButton.setText("Concede (Esc)");
 	}
 
 	constructor(words) {
 		this.words = words;
 
+		font = FontResource.fromResource("Courier Prime.ttf").getRenderer();
 		// Render tray letters.
-		font = FontResource.fromResource("Courier Prime.ttf").getRenderer().setSize(TRAY_FONT_SIZE);
+		font.setSize(TRAY_FONT_SIZE).setStyle(FontStyle.BOLD);
 		for (letter : MainScene.alphabet + ["-"]) {
 			entry = {};
 			font.setColor(0, 0, 0);
@@ -207,8 +231,9 @@ class MainScene : AbstractScene {
 			entry[TextColor.RED] = font.render(letter);
 			this.trayLetterToImage[letter] = entry;
 		}
+
 		// Render board letters.
-		font.setSize(BOARD_FONT_SIZE);
+		font.setSize(BOARD_FONT_SIZE).setStyle(FontStyle.NORMAL);
 		for (letter : MainScene.alphabet + ["-"]) {
 			entry = {};
 			font.setColor(0, 0, 0);
@@ -222,14 +247,43 @@ class MainScene : AbstractScene {
 			this.boardLetterToImage[letter] = entry;
 		}
 
+		// Add buttons.
+		this.buttons = [];
+		x = SIDE_MARGIN;
+		// Clear
+		this.clearButton = new Button(x, BUTTON_MARGIN_TOP, 0.0, 0.0, "Clear (Space)");
+		this.clearButton.hotkeys.add(KeyboardKey.SPACE);
+		this.buttons.add(this.clearButton);
+		x += this.clearButton.width + SIDE_MARGIN;
+		// Delete
+		this.deleteButton = new Button(x, BUTTON_MARGIN_TOP, 0.0, 0.0, "Delete (. / ←)");
+		this.deleteButton.hotkeys.add(KeyboardKey.PERIOD);
+		this.deleteButton.hotkeys.add(KeyboardKey.LEFT);
+		this.buttons.add(this.deleteButton);
+		// Shuffle
+		x = SIDE_MARGIN;
+		y = BUTTON_MARGIN_TOP + BUTTON_MARGIN_BETWEEN + BUTTON_HEIGHT;
+		this.shuffleButton = new Button(x, y, 0.0, 0.0, "Shuffle (Shift)");
+		this.shuffleButton.repeatable = true;
+		this.buttons.add(this.shuffleButton);
+		x += this.shuffleButton.width + SIDE_MARGIN;
+		// Check
+		this.checkButton = new Button(x, y, 0.0, 0.0, "Check (Enter)");
+		this.checkButton.hotkeys.add(KeyboardKey.ENTER);
+		this.buttons.add(this.checkButton);
+		// Concede/restart
+		this.concedeRestartButton = new Button(X_RES - SIDE_MARGIN, BUTTON_MARGIN_TOP, 1.0, 0.0, " ");
+		this.concedeRestartButton.hotkeys.add(KeyboardKey.ESCAPE);
+		this.buttons.add(this.concedeRestartButton);
+
 		this.reset();
 	}
 
 	function emptyTray() {
-		for (letter : this.current) {
-			this.letters.add(letter);
+		for (letter : this.guess) {
+			this.tray.add(letter);
 		}
-		this.current = "";
+		this.guess = "";
 	}
 
 	function revealAll() {
@@ -248,65 +302,106 @@ class MainScene : AbstractScene {
 				: TextColor.GREEN
 				;
 		}
+		this.changeConcedeButtonToRestart();
 		return revealedAny;
 	}
 
+	function changeConcedeButtonToRestart() {
+		this.concedeRestartButton.setText("Restart (Esc)");
+	}
+
 	function update(inputManager, events) {
+		// Update buttons.
+		for (element : this.buttons) {
+			element.update(inputManager, events);
+		}
+
 		// Reveal all or reset.
-		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ESCAPE)) {
+		if (this.concedeRestartButton.clicked) {
 			if (!this.revealAll()) {
 				this.reset();
 			}
 		}
 
 		// Shuffle letter tray.
-		if (inputManager.isShiftPressed()) {
-			this.letters.shuffle();
+		if (this.shuffleButton.clicked || inputManager.isShiftPressed()) {
+			this.tray.shuffle();
 		}
 
-		// Use letters.
+		// Use letters from tray.
 		for (event : events) {
 			if (event.type == EventType.KEY && event.down) {
 				if (MainScene.keyToLetter.contains(event.key)) {
 					letter = MainScene.keyToLetter[event.key];
-					for (i = 0; i < this.letters.length; ++i) {
-						if (this.letters[i] == letter) {
-							this.current += this.letters[i];
-							this.letters.remove(i);
+					for (i = 0; i < this.tray.length; ++i) {
+						if (this.tray[i] == letter) {
+							this.guess += this.tray[i];
+							this.tray.remove(i);
 							break;
 						}
 					}
 				}
 			}
 		}
+		// Check for clicked tray letters.
+		for (i = 0; i < this.tray.length; ++i) {
+			if (inputManager.didMouseClickHere(TRAY_X + i * TRAY_COL_WIDTH, TRAY_Y, TRAY_COL_WIDTH, TRAY_HEIGHT)) {
+				this.guess += this.tray[i];
+				this.tray.remove(i);
+				break;
+			}
+		}
 
 		// Return letters to tray.
-		if (inputManager.isKeyPressedThisFrame(KeyboardKey.SPACE)) {
+		if (this.clearButton.clicked) {
 			this.emptyTray();
 		}
 
 		// Return one letter to tray.
-		if (inputManager.isKeyPressedThisFrame(KeyboardKey.PERIOD)) {
-			if (this.current.length > 0) {
-				this.letters.add(this.current[-1]);
-				this.current = this.current[:-1];
+		if (this.deleteButton.clicked) {
+			if (this.guess.length > 0) {
+				this.tray.add(this.guess[-1]);
+				this.guess = this.guess[:-1];
+			}
+		}
+		// Check for clicked guess letters.
+		for (i = 0; i < this.guess.length; ++i) {
+			if (inputManager.didMouseClickHere(GUESS_X + i * GUESS_COL_WIDTH, GUESS_Y, GUESS_COL_WIDTH, GUESS_HEIGHT)) {
+				this.tray.add(this.guess[i]);
+				this.guess = this.guess[:i] + this.guess[i+1:];
+				break;
 			}
 		}
 
-		// Try current guess.
-		if (inputManager.isKeyPressedThisFrame(KeyboardKey.ENTER)) {
+		// Check current guess.
+		if (this.checkButton.clicked) {
 			this.flashTimer = FLASH_DURATION;
 			this.flashWordSet = {};
-			this.flashWordSet[this.current] = true;
-			if (this.foundWordMap.contains(this.current)) {
-				if (this.foundWordMap[this.current]) {
+			this.flashWordSet[this.guess] = true;
+			if (this.foundWordMap.contains(this.guess)) {
+				if (this.foundWordMap[this.guess]) {
 					// Already found this word.
 					this.flashColor = TextColor.YELLOW;
 				} else {
 					// New word.
-					this.currentScore += MainScene.getScore(this.current);
+					this.currentScore += MainScene.getScore(this.guess);
 					this.flashColor = TextColor.GREEN;
-					this.foundWordMap[this.current] = true;
+					this.foundWordMap[this.guess] = true;
+					// Change the concede button to "reveal" if enough words have been found.
+					if (this.currentScore >= floor(REQUIRED_SCORE_RATIO * this.maxScore)) {
+						this.concedeRestartButton.setText("Reveal All (Esc)");
+						// Change the concede button to "restart" if all words have been found.
+						foundAll = true;
+						for (word : this.foundWordMap.keys()) {
+							if (!this.foundWordMap[word]) {
+								foundAll = false;
+								break;
+							}
+						}
+						if (foundAll) {
+							this.concedeRestartButton.setText("Restart (Esc)");
+						}
+					}
 				}
 				this.emptyTray();
 			} else {
@@ -338,27 +433,32 @@ class MainScene : AbstractScene {
 	function render() {
 		Graphics2D.Draw.fill(255, 255, 255);
 
-		// Draw available letters.
-		this.drawWord(this.letters.join(""), SIDE_PADDING, 0, true);
+		// Draw tray letters.
+		this.drawWord(this.tray.join(""), TRAY_X, TRAY_Y, true);
 
 		// Draw current guess.
-		this.drawWord(this.current, SIDE_PADDING, 1.5 * ROW_HEIGHT, false);
+		this.drawWord(this.guess, GUESS_X, GUESS_Y, false);
 
 		// Draw found and missing words.
 		row = 0;
 		col = 0;
 		for (word : this.foundWordMap.keys()) {
-			if (col + word.length >= N_COLS) {
+			if (col + word.length >= BOARD_N_COLS) {
 				++row;
 				col = 0;
 			}
 			this.drawWord
 				( this.foundWordMap[word] ? word : "-" * word.length
-				, col * BOARD_COL_WIDTH + SIDE_PADDING
-				, row * ROW_HEIGHT + BOARD_TOP_PADDING
+				, col * BOARD_COL_WIDTH + SIDE_MARGIN
+				, row * BOARD_ROW_HEIGHT + BOARD_TOP_MARGIN
 				, false
 				);
 			col += word.length + 1;
+		}
+
+		// Draw buttons.
+		for (element : this.buttons) {
+			element.draw();
 		}
 
 		// Draw score bar.

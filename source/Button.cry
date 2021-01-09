@@ -1,0 +1,110 @@
+import Graphics2D;
+import Graphics2DText;
+import TwoCansAlpha4;
+
+const BUTTON_FONT_SIZE = 14;
+const BUTTON_BORDER = 1;
+const BUTTON_HEIGHT = 40.0;
+const BUTTON_SIDE_PADDING = 10.0;
+
+class Button {
+	static field font;
+
+	static constructor() {
+		Button.font = FontResource
+			.fromSystem("Times New Roman")
+			.getRenderer()
+			.setColor(0, 0, 0)
+			.setSize(BUTTON_FONT_SIZE)
+			.setStyle(FontStyle.BOLD);
+	}
+
+	field xOrigin;
+	field yOrigin;
+	field x;
+	field y;
+	field xAlign;
+	field yAlign;
+	field width;
+	field height;
+	field image;
+
+	field clicked = false;
+	field hovered;
+	field clickHeld = false;
+
+	field hotkeys = [];
+	field repeatable = false;
+
+	constructor(x, y, xAlign, yAlign, text) {
+		this.xOrigin = x;
+		this.yOrigin = y;
+		this.image = Button.font.render(text);
+		this.width = this.image.width + 2.0 * BUTTON_SIDE_PADDING;
+		this.x = x - xAlign * this.width;
+		this.y = y - yAlign * BUTTON_HEIGHT;
+		this.xAlign = xAlign;
+		this.yAlign = yAlign;
+	}
+
+	function setText(text) {
+		this.image = Button.font.render(text);
+		this.width = this.image.width + 2.0 * BUTTON_SIDE_PADDING;
+		this.x = this.xOrigin - this.xAlign * this.width;
+		this.y = this.yOrigin - this.yAlign * BUTTON_HEIGHT;
+	}
+
+	function update(inputManager, events) {
+		if (this.repeatable) {
+			for (e : events) {
+				switch (e.type) {
+					case EventType.MOUSE_RELEASE:
+						this.clickHeld = false;
+						break;
+					case EventType.MOUSE_PRESS:
+						if (inputManager.isMouseOver(this.x, this.y, this.width + 1, BUTTON_HEIGHT)) {
+							this.clickHeld = true;
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			for (hotkey : this.hotkeys) {
+				if (inputManager.isKeyPressed(hotkey)) {
+					this.clickHeld = true;
+					break;
+				}
+			}
+			this.clicked = this.clickHeld;
+		} else {
+			this.clicked = inputManager.didMouseClickHere(this.x, this.y, this.width, BUTTON_HEIGHT);
+			for (hotkey : this.hotkeys) {
+				if (inputManager.isKeyPressedThisFrame(hotkey)) {
+					this.clicked = true;
+					break;
+				}
+			}
+		}
+		this.hovered = inputManager.isMouseOver(this.x, this.y, this.width, BUTTON_HEIGHT);
+	}
+
+	function draw() {
+		// Draw border.
+		Graphics2D.Draw.rectangle(this.x, this.y, this.width, BUTTON_HEIGHT, 0, 0, 0);
+
+		// Draw background.
+		color = this.hovered ? [200, 232, 255] : [190, 224, 255];
+		Graphics2D.Draw.rectangle
+			( this.x + BUTTON_BORDER, this.y + BUTTON_BORDER
+			, this.width - 2 * BUTTON_BORDER, BUTTON_HEIGHT - 2 * BUTTON_BORDER
+			, color[0], color[1], color[2]
+			);
+
+		// Draw foreground.
+		this.image.draw
+			( this.x + (this.width - this.image.width) / 2
+			, this.y + (BUTTON_HEIGHT - this.image.height) / 2
+			);
+	}
+}
