@@ -94,7 +94,7 @@ class Button {
 		Graphics2D.Draw.rectangle(this.x, this.y, this.width, BUTTON_HEIGHT, 0, 0, 0);
 
 		// Draw background.
-		color = this.hovered ? [200, 232, 255] : [190, 224, 255];
+		color = this.hovered ? [225, 240, 255] : [190, 224, 255];
 		Graphics2D.Draw.rectangle
 			( this.x + BUTTON_BORDER, this.y + BUTTON_BORDER
 			, this.width - 2 * BUTTON_BORDER, BUTTON_HEIGHT - 2 * BUTTON_BORDER
