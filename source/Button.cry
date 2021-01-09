@@ -3,9 +3,10 @@ import Graphics2DText;
 import TwoCansAlpha4;
 
 const BUTTON_FONT_SIZE = 14;
-const BUTTON_BORDER = 1;
+const BUTTON_BORDER = 2.0;
 const BUTTON_HEIGHT = 40.0;
 const BUTTON_SIDE_PADDING = 10.0;
+const BUTTON_CORNER_RADIUS = 5.0;
 
 class Button {
 	static field font;
@@ -91,13 +92,14 @@ class Button {
 
 	function draw() {
 		// Draw border.
-		Graphics2D.Draw.rectangle(this.x, this.y, this.width, BUTTON_HEIGHT, 0, 0, 0);
+		drawRoundedRectangle(this.x, this.y, this.width, BUTTON_HEIGHT, BUTTON_CORNER_RADIUS, 0, 0, 0);
 
 		// Draw background.
 		color = this.hovered ? [225, 240, 255] : [190, 224, 255];
-		Graphics2D.Draw.rectangle
+		drawRoundedRectangle
 			( this.x + BUTTON_BORDER, this.y + BUTTON_BORDER
 			, this.width - 2 * BUTTON_BORDER, BUTTON_HEIGHT - 2 * BUTTON_BORDER
+			, BUTTON_CORNER_RADIUS - BUTTON_BORDER
 			, color[0], color[1], color[2]
 			);
 
@@ -107,4 +109,21 @@ class Button {
 			, this.y + (BUTTON_HEIGHT - this.image.height) / 2
 			);
 	}
+}
+
+function drawRoundedRectangle(x, y, width, height, radius, r, g, b) {
+	Graphics2D.Draw.ellipse(x, y, 2.0 * radius, 2.0 * radius, r, g, b);
+	Graphics2D.Draw.ellipse(x + width - 2.0 * radius, y, 2.0 * radius, 2.0 * radius, r, g, b);
+	Graphics2D.Draw.ellipse(x, y + height - 2.0 * radius, 2.0 * radius, 2.0 * radius, r, g, b);
+	Graphics2D.Draw.ellipse(x + width - 2.0 * radius, y + height - 2.0 * radius, 2.0 * radius, 2.0 * radius, r, g, b);
+	Graphics2D.Draw.rectangle
+		( x, y + radius
+		, width, height - 2.0 * radius
+		, r, g, b
+		);
+	Graphics2D.Draw.rectangle
+		( x + radius, y
+		, width - 2.0 * radius, height
+		, r, g, b
+		);
 }
