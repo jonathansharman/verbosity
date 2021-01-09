@@ -1,3 +1,4 @@
+import Audio;
 import Graphics2D;
 import Graphics2DText;
 import Math;
@@ -60,6 +61,9 @@ function lengthThreeOrMore(string) { return string.length >= 3; }
 function getLength(list) { return list.length; }
 
 class MainScene : AbstractScene {
+	static field ding = SoundResource.loadFromResource("ding.ogg");
+	static field bong = SoundResource.loadFromResource("bong.ogg");
+
 	static field vowels = ["A", "E", "I", "O", "U"];
 	static field consonants =
 		[ "B", "C", "D", "F", "G", "H", "J"
@@ -153,6 +157,9 @@ class MainScene : AbstractScene {
 	field clearButton;
 	field deleteButton;
 	field concedeRestartButton;
+	field muteButton;
+
+	field muted = false;
 
 	function reset() {
 		this.guess = "";
@@ -275,6 +282,10 @@ class MainScene : AbstractScene {
 		this.concedeRestartButton = new Button(X_RES - SIDE_MARGIN, BUTTON_MARGIN_TOP, 1.0, 0.0, " ");
 		this.concedeRestartButton.hotkeys.add(KeyboardKey.ESCAPE);
 		this.buttons.add(this.concedeRestartButton);
+		// Mute
+		this.muteButton = new Button(X_RES - SIDE_MARGIN, y, 1.0, 0.0, "Mute (\\)");
+		this.muteButton.hotkeys.add(KeyboardKey.BACKSLASH);
+		this.buttons.add(this.muteButton);
 
 		this.reset();
 	}
@@ -297,12 +308,15 @@ class MainScene : AbstractScene {
 			}
 		}
 		if (revealedAny) {
-			this.flashColor = this.currentScore < floor(REQUIRED_SCORE_RATIO * this.maxScore)
-				? TextColor.RED
-				: TextColor.GREEN
-				;
+			if (this.currentScore < floor(REQUIRED_SCORE_RATIO * this.maxScore)) {
+				this.flashColor = TextColor.RED;
+				MainScene.bong.play();
+			} else {
+				this.flashColor = TextColor.GREEN;
+				MainScene.ding.play();
+			}
+			this.changeConcedeButtonToRestart();
 		}
-		this.changeConcedeButtonToRestart();
 		return revealedAny;
 	}
 
@@ -314,6 +328,17 @@ class MainScene : AbstractScene {
 		// Update buttons.
 		for (element : this.buttons) {
 			element.update(inputManager, events);
+		}
+
+		// Mute/unmute.
+		if (this.muteButton.clicked) {
+			if (this.muted) {
+				this.muted = false;
+				this.muteButton.setText("Mute (\\)");
+			} else {
+				this.muted = true;
+				this.muteButton.setText("Unmute (\\)");
+			}
 		}
 
 		// Reveal all or reset.
@@ -387,6 +412,9 @@ class MainScene : AbstractScene {
 					this.currentScore += MainScene.getScore(this.guess);
 					this.flashColor = TextColor.GREEN;
 					this.foundWordMap[this.guess] = true;
+					if (!this.muted) {
+						MainScene.ding.play();
+					}
 					// Change the concede button to "reveal" if enough words have been found.
 					if (this.currentScore >= floor(REQUIRED_SCORE_RATIO * this.maxScore)) {
 						this.concedeRestartButton.setText("Reveal All (Esc)");
@@ -406,6 +434,9 @@ class MainScene : AbstractScene {
 				this.emptyTray();
 			} else {
 				this.flashColor = TextColor.RED;
+				if (!this.muted) {
+					MainScene.bong.play();
+				}
 			}
 		}
 
