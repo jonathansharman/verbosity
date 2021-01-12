@@ -40,9 +40,13 @@ const TRAY_HEIGHT = 40.0;
 const TRAY_COL_WIDTH = 27.0;
 
 const GUESS_X = TRAY_X;
-const GUESS_Y = 62.0;
+const GUESS_Y = 64.0;
 const GUESS_HEIGHT = 30.0;
 const GUESS_COL_WIDTH = BOARD_COL_WIDTH;
+
+const SCORE_HINTS_FONT_SIZE = 12;
+const STARTING_HINTS = 1;
+const PTS_PER_HINT = 30;
 
 enum TextColor { BLACK, GREEN, YELLOW, RED }
 
@@ -61,6 +65,8 @@ function lengthThreeOrMore(string) { return string.length >= 3; }
 function getLength(list) { return list.length; }
 
 class MainScene : AbstractScene {
+	static field font = FontResource.fromResource("Courier Prime.ttf").getRenderer();
+
 	static field ding = SoundResource.loadFromResource("ding.ogg");
 	static field bong = SoundResource.loadFromResource("bong.ogg");
 
@@ -142,6 +148,12 @@ class MainScene : AbstractScene {
 	field guess;
 	field currentScore;
 	field maxScore;
+	field requiredScore;
+	field scoreText;
+
+	field hints;
+	field hintsRequiredPts;
+	field hintsText;
 
 	field trayLetterToImage = {};
 	field boardLetterToImage = {};
@@ -162,11 +174,6 @@ class MainScene : AbstractScene {
 	field muted = false;
 
 	function reset() {
-		this.guess = "";
-		this.flashTimer = 0;
-		this.flashWordSet = {};
-		this.missedWordSet = {};
-
 		// Add random letters to the tray.
 		this.tray = [];
 		for (i = 0; i < N_VOWELS; ++i) {
@@ -188,7 +195,7 @@ class MainScene : AbstractScene {
 		// Shuffle and then sort by length, to avoid giving hints besides word length.
 		possibleWords.shuffle();
 		possibleWords.sort(getLength);
-		// Populate the found word map and find the max word length and max score.
+		// Populate the found word map and find the max word length and max/required score.
 		this.foundWordMap = {};
 		this.maxLength = 0;
 		this.currentScore = 0;
@@ -200,6 +207,7 @@ class MainScene : AbstractScene {
 				this.maxLength = word.length;
 			}
 		}
+		this.requiredScore = floor(REQUIRED_SCORE_RATIO * this.maxScore);
 
 		// Ensure that the number of rows is within the desired range.
 		row = 0;
@@ -216,6 +224,18 @@ class MainScene : AbstractScene {
 			this.reset();
 		}
 
+		this.renderScoreText();
+
+		this.guess = "";
+		this.flashTimer = 0;
+		this.flashWordSet = {};
+		this.missedWordSet = {};
+
+		// Initialize hints.
+		this.hints = STARTING_HINTS;
+		this.hintsRequiredPts = PTS_PER_HINT;
+		this.renderHintsText();
+
 		// Set concede/restart button text to concede.
 		this.concedeRestartButton.setText("Concede (Esc)");
 	}
@@ -223,34 +243,33 @@ class MainScene : AbstractScene {
 	constructor(words) {
 		this.words = words;
 
-		font = FontResource.fromResource("Courier Prime.ttf").getRenderer();
 		// Render tray letters.
-		font.setSize(TRAY_FONT_SIZE).setStyle(FontStyle.BOLD);
+		MainScene.font.setSize(TRAY_FONT_SIZE).setStyle(FontStyle.BOLD);
 		for (letter : MainScene.alphabet + ["-"]) {
 			entry = {};
-			font.setColor(0, 0, 0);
-			entry[TextColor.BLACK] = font.render(letter);
-			font.setColor(0, 192, 0);
-			entry[TextColor.GREEN] = font.render(letter);
-			font.setColor(255, 192, 0);
-			entry[TextColor.YELLOW] = font.render(letter);
-			font.setColor(255, 0, 0);
-			entry[TextColor.RED] = font.render(letter);
+			MainScene.font.setColor(0, 0, 0);
+			entry[TextColor.BLACK] = MainScene.font.render(letter);
+			MainScene.font.setColor(0, 192, 0);
+			entry[TextColor.GREEN] = MainScene.font.render(letter);
+			MainScene.font.setColor(255, 192, 0);
+			entry[TextColor.YELLOW] = MainScene.font.render(letter);
+			MainScene.font.setColor(255, 0, 0);
+			entry[TextColor.RED] = MainScene.font.render(letter);
 			this.trayLetterToImage[letter] = entry;
 		}
 
 		// Render board letters.
-		font.setSize(BOARD_FONT_SIZE).setStyle(FontStyle.NORMAL);
+		MainScene.font.setSize(BOARD_FONT_SIZE).setStyle(FontStyle.NORMAL);
 		for (letter : MainScene.alphabet + ["-"]) {
 			entry = {};
-			font.setColor(0, 0, 0);
-			entry[TextColor.BLACK] = font.render(letter);
-			font.setColor(0, 192, 0);
-			entry[TextColor.GREEN] = font.render(letter);
-			font.setColor(255, 192, 0);
-			entry[TextColor.YELLOW] = font.render(letter);
-			font.setColor(255, 0, 0);
-			entry[TextColor.RED] = font.render(letter);
+			MainScene.font.setColor(0, 0, 0);
+			entry[TextColor.BLACK] = MainScene.font.render(letter);
+			MainScene.font.setColor(0, 192, 0);
+			entry[TextColor.GREEN] = MainScene.font.render(letter);
+			MainScene.font.setColor(255, 192, 0);
+			entry[TextColor.YELLOW] = MainScene.font.render(letter);
+			MainScene.font.setColor(255, 0, 0);
+			entry[TextColor.RED] = MainScene.font.render(letter);
 			this.boardLetterToImage[letter] = entry;
 		}
 
@@ -308,7 +327,7 @@ class MainScene : AbstractScene {
 			}
 		}
 		if (revealedAny) {
-			if (this.currentScore < floor(REQUIRED_SCORE_RATIO * this.maxScore)) {
+			if (this.currentScore < this.requiredScore) {
 				this.flashColor = TextColor.RED;
 				MainScene.bong.play();
 			} else {
@@ -409,14 +428,27 @@ class MainScene : AbstractScene {
 					this.flashColor = TextColor.YELLOW;
 				} else {
 					// New word.
-					this.currentScore += MainScene.getScore(this.guess);
+					// Update score.
+					wordScore = MainScene.getScore(this.guess);
+					this.currentScore += wordScore;
+					this.renderScoreText();
+					// Update hints.
+					this.hintsRequiredPts -= wordScore;
+					while (this.hintsRequiredPts <= 0) {
+						++this.hints;
+						this.hintsRequiredPts += PTS_PER_HINT;
+					}
+					this.renderHintsText();
+					// Flash green.
 					this.flashColor = TextColor.GREEN;
+					// Update found word map.
 					this.foundWordMap[this.guess] = true;
+					// Ding!
 					if (!this.muted) {
 						MainScene.ding.play();
 					}
 					// Change the concede button to "reveal" if enough words have been found.
-					if (this.currentScore >= floor(REQUIRED_SCORE_RATIO * this.maxScore)) {
+					if (this.currentScore >= this.requiredScore) {
 						this.concedeRestartButton.setText("Reveal All (Esc)");
 						// Change the concede button to "restart" if all words have been found.
 						foundAll = true;
@@ -461,6 +493,26 @@ class MainScene : AbstractScene {
 		}
 	}
 
+	function renderScoreText() {
+		MainScene.font
+			.setStyle(FontStyle.BOLD)
+			.setColor(0, 0, 0)
+			.setSize(SCORE_HINTS_FONT_SIZE);
+		text = "Score: " + this.currentScore + "/" + this.maxScore
+			+ " (" + Math.max(0, this.requiredScore - this.currentScore) + " pts. left to \"win\")";
+		this.scoreText = MainScene.font.render(text);
+	}
+
+	function renderHintsText() {
+		MainScene.font
+			.setStyle(FontStyle.BOLD)
+			.setColor(0, 0, 0)
+			.setSize(SCORE_HINTS_FONT_SIZE);
+		this.hintsText = MainScene.font.render
+			( "Hints: " + this.hints + " (" + this.hintsRequiredPts + " pts. to next hint)"
+			);
+	}
+
 	function render() {
 		Graphics2D.Draw.fill(255, 255, 255);
 
@@ -500,7 +552,7 @@ class MainScene : AbstractScene {
 			, SCORE_BAR_HEIGHT
 			, 0, 0, 0
 			);
-		if (this.currentScore >= REQUIRED_SCORE_RATIO * this.maxScore) {
+		if (this.currentScore >= this.requiredScore) {
 			r = 0;
 			g = 255;
 		} else {
@@ -515,5 +567,14 @@ class MainScene : AbstractScene {
 			, r, g, 0
 			);
 		Graphics2D.Draw.line(X_RES / 4, Y_RES - SCORE_BAR_HEIGHT + 1, X_RES / 4, Y_RES - 1, 2, 0, 255, 0);
+
+		// Draw score text.
+		this.scoreText.draw(SIDE_MARGIN, Y_RES - this.scoreText.height - SCORE_BAR_HEIGHT);
+
+		// Draw hints text.
+		this.hintsText.draw
+			( X_RES - this.hintsText.width - SIDE_MARGIN
+			, Y_RES - this.hintsText.height - SCORE_BAR_HEIGHT
+			);
 	}
 }

@@ -6,9 +6,11 @@ import TwoCansAlpha4;
 
 const CHUNK_SIZE = 2000;
 
+const TITLE_Y = 100.0;
+
 const INSTRUCTIONS_X = 20.0;
-const INSTRUCTIONS_Y = 250.0;
-const INSTRUCTIONS_LINE_SKIP = 40.0;
+const INSTRUCTIONS_Y = 235.0;
+const INSTRUCTIONS_LINE_SKIP = 35.0;
 
 class LoadingScene : AbstractScene {
 	field wordsList;
@@ -29,6 +31,9 @@ class LoadingScene : AbstractScene {
 		this.instructions =
 			[ this.font.render("Type words from the available letters! Earn 25% of the")
 			, this.font.render("total Scrabble score of all possible words to \"win\"!")
+			, this.font.render(" ")
+			, this.font.render("Use hints to reveal letters by clicking on them!")
+			, this.font.render(" ")
 			, this.font.render("Don't press backspace! It is forbidden!")
 			];
 
@@ -81,7 +86,7 @@ class LoadingScene : AbstractScene {
 		Graphics2D.Draw.fill(255, 255, 255);
 
 		// Draw title.
-		this.title.draw(0.5 * (X_RES - this.title.width), 0.20 * Y_RES);
+		this.title.draw(0.5 * (X_RES - this.title.width), TITLE_Y);
 
 		// Draw instructions.
 		for (i = 0; i < this.instructions.length; ++i) {
