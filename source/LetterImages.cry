@@ -1,0 +1,35 @@
+static class LetterImages {
+	static field largeLetterToImage;
+	static field smallLetterToImage;
+
+	static constructor() {
+		characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-";
+		renderAtSize = size => {
+			MainScene.font.setSize(size);
+			letterToImage = {};
+			for (letter : characters) {
+				entry = {};
+				MainScene.font.setColor(0, 0, 0);
+				entry[TextColor.BLACK] = MainScene.font.render(letter);
+				MainScene.font.setColor(0, 192, 0);
+				entry[TextColor.GREEN] = MainScene.font.render(letter);
+				MainScene.font.setColor(255, 192, 0);
+				entry[TextColor.YELLOW] = MainScene.font.render(letter);
+				MainScene.font.setColor(255, 0, 0);
+				entry[TextColor.RED] = MainScene.font.render(letter);
+				letterToImage[letter] = entry;
+			}
+			return letterToImage;
+		};
+		LetterImages.largeLetterToImage = renderAtSize(TRAY_FONT_SIZE);
+		LetterImages.smallLetterToImage = renderAtSize(BOARD_FONT_SIZE);
+	}
+
+	static function large(letter, color) {
+		return LetterImages.largeLetterToImage[letter][color];
+	}
+
+	static function small(letter, color) {
+		return LetterImages.smallLetterToImage[letter][color];
+	}
+}

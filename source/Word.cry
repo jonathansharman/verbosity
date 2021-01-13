@@ -1,0 +1,79 @@
+const FLASH_DURATION = 48;
+const FLASH_HALF_PERIOD = 6;
+
+class Word {
+	@private field text;
+	@private field revealedMask;
+	@private field large;
+	@private field x;
+	@private field y;
+	@private field currentFlash = null;
+	@private field basicColor = TextColor.BLACK;
+
+	constructor(text, x, y, large, revealed) {
+		this.text = text;
+		this.revealedMask = [revealed] * text.length;
+		this.large = large;
+		this.x = x;
+		this.y = y;
+	}
+
+	function isRevealed() {
+		for (revealed : this.revealedMask) {
+			if (!revealed) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function revealAll() {
+		this.revealedMask = [true] * this.text.length;
+	}
+
+	function getText() {
+		return this.text;
+	}
+
+	function setText(text) {
+		this.text = text;
+		this.revealedMask = [true] * text.length;
+		this.currentFlash = null;
+	}
+
+	function flash(color) {
+		this.currentFlash = [FLASH_DURATION, color];
+	}
+
+	function setBasicColor(color) {
+		this.basicColor = color;
+	}
+
+	function update() {
+		if (this.currentFlash != null) {
+			--this.currentFlash[0];
+			if (this.currentFlash[0] == 0) {
+				this.currentFlash = null;
+			}
+		}
+	}
+
+	function draw() {
+		if (this.currentFlash != null) {
+			color = this.currentFlash[0] % (2 * FLASH_HALF_PERIOD) >= FLASH_HALF_PERIOD
+				? this.currentFlash[1]
+				: TextColor.BLACK;
+		} else {
+			color = this.basicColor;
+		}
+		x = this.x;
+		for (i = 0; i < this.text.length; ++i) {
+			letter = this.revealedMask[i] ? this.text[i] : "-";
+			image = this.large
+				? LetterImages.large(letter, color)
+				: LetterImages.small(letter, color);
+			image.draw(x, this.y);
+			x += this.large ? TRAY_COL_WIDTH : BOARD_COL_WIDTH;
+		}
+	}
+}
