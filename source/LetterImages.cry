@@ -1,34 +1,39 @@
+const LARGE_FONT_SIZE = 24;
+const SMALL_FONT_SIZE = 18;
+
 static class LetterImages {
-	static field largeLetterToImage;
-	static field smallLetterToImage;
+	@private static field largeLetterToImage;
+	@private static field smallLetterToImage;
 
 	static constructor() {
 		characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-";
 		renderAtSize = size => {
-			MainScene.font.setSize(size);
+			Fonts.font.setSize(size);
 			letterToImage = {};
 			for (letter : characters) {
 				entry = {};
-				MainScene.font.setColor(0, 0, 0);
-				entry[TextColor.BLACK] = MainScene.font.render(letter);
-				MainScene.font.setColor(0, 192, 0);
-				entry[TextColor.GREEN] = MainScene.font.render(letter);
-				MainScene.font.setColor(255, 192, 0);
-				entry[TextColor.YELLOW] = MainScene.font.render(letter);
-				MainScene.font.setColor(255, 0, 0);
-				entry[TextColor.RED] = MainScene.font.render(letter);
+				Fonts.font.setColor(0, 0, 0);
+				entry[TextColor.BLACK] = Fonts.font.render(letter);
+				Fonts.font.setColor(0, 192, 0);
+				entry[TextColor.GREEN] = Fonts.font.render(letter);
+				Fonts.font.setColor(255, 192, 0);
+				entry[TextColor.YELLOW] = Fonts.font.render(letter);
+				Fonts.font.setColor(255, 0, 0);
+				entry[TextColor.RED] = Fonts.font.render(letter);
 				letterToImage[letter] = entry;
 			}
 			return letterToImage;
 		};
-		LetterImages.largeLetterToImage = renderAtSize(TRAY_FONT_SIZE);
-		LetterImages.smallLetterToImage = renderAtSize(BOARD_FONT_SIZE);
+		LetterImages.largeLetterToImage = renderAtSize(LARGE_FONT_SIZE);
+		LetterImages.smallLetterToImage = renderAtSize(SMALL_FONT_SIZE);
 	}
 
+	// Gets the image for the given large letter and color.
 	static function large(letter, color) {
 		return LetterImages.largeLetterToImage[letter][color];
 	}
 
+	// Gets the image for the given small letter and color.
 	static function small(letter, color) {
 		return LetterImages.smallLetterToImage[letter][color];
 	}

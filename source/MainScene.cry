@@ -15,36 +15,27 @@ const N_VOWELS = 5;
 const N_CONSONANTS = 7;
 
 // The proportion of possible words required to be found in order to win.
-const REQUIRED_SCORE_RATIO = 0.25;
+const REQUIRED_SCORE_RATIO = 0.5;
 
 const SIDE_MARGIN = 5.0;
 
-const BOARD_FONT_SIZE = 18;
-const BOARD_ROW_HEIGHT = 32.0;
-const BOARD_COL_WIDTH = 21.0;
-const BOARD_N_COLS = floor((X_RES - 2.0 * SIDE_MARGIN) / BOARD_COL_WIDTH);
+const BOARD_N_COLS = floor((X_RES - 2.0 * SIDE_MARGIN) / SMALL_LETTER_WIDTH);
 const BOARD_MIN_ROWS = 12;
 const BOARD_MAX_ROWS = 14;
+const BOARD_ROW_HEIGHT = 32.0;
 const BOARD_TOP_MARGIN = 3.5 * BOARD_ROW_HEIGHT;
 const SCORE_BAR_HEIGHT = 20;
 
 const BUTTON_MARGIN_TOP = 10.0;
 const BUTTON_MARGIN_BETWEEN = 10.0;
 
-const TRAY_FONT_SIZE = 24;
-const TRAY_X = 305.0;
+const TRAY_GUESS_X = 305.0;
 const TRAY_Y = 8.0;
-const TRAY_HEIGHT = 40.0;
-const TRAY_COL_WIDTH = 27.0;
-
-const GUESS_X = TRAY_X;
 const GUESS_Y = 64.0;
-const GUESS_HEIGHT = 30.0;
-const GUESS_COL_WIDTH = BOARD_COL_WIDTH;
 
 const SCORE_HINTS_FONT_SIZE = 12;
-const STARTING_HINTS = 1;
-const PTS_PER_HINT = 30;
+const STARTING_HINTS = 2;
+const PTS_PER_HINT = 15;
 
 enum TextColor { BLACK, GREEN, YELLOW, RED }
 
@@ -65,7 +56,6 @@ function ceil(x) {
 }
 
 class MainScene : AbstractScene {
-	static field font = FontResource.fromResource("Courier Prime.ttf").getRenderer();
 
 	static field ding = SoundResource.loadFromResource("ding.ogg");
 	static field bong = SoundResource.loadFromResource("bong.ogg");
@@ -145,7 +135,7 @@ class MainScene : AbstractScene {
 			trayLetters.add(MainScene.consonants.choice());
 		}
 		trayLetters.shuffle();
-		this.tray = new Word(trayLetters.join(""), TRAY_X, TRAY_Y, true, true);
+		this.tray = new Word(trayLetters.join(""), TRAY_GUESS_X, TRAY_Y, true, true);
 
 		// Find possible words with at least three letters.
 		possibleWords = this.wordTree
@@ -166,8 +156,8 @@ class MainScene : AbstractScene {
 				++row;
 				col = 0;
 			}
-			x = SIDE_MARGIN + col * BOARD_COL_WIDTH;
-			y = BOARD_TOP_MARGIN + row * BOARD_ROW_HEIGHT;
+			x = SIDE_MARGIN + col * SMALL_LETTER_WIDTH;
+			y = BOARD_TOP_MARGIN + row * SMALL_LETTER_HEIGHT;
 			this.boardWords.add(new Word(word, x, y, false, false));
 			this.wordToBoardIdx[word] = boardIdx;
 			++boardIdx;
@@ -183,7 +173,7 @@ class MainScene : AbstractScene {
 
 		this.renderScoreText();
 
-		this.guess = new Word("", GUESS_X, GUESS_Y, false, true);
+		this.guess = new Word("", TRAY_GUESS_X, GUESS_Y, false, true);
 
 		// Initialize hints.
 		this.hints = STARTING_HINTS;
@@ -234,7 +224,7 @@ class MainScene : AbstractScene {
 
 	function emptyTray() {
 		text = this.guess.getText();
-		this.tray.setText(this.tray.getText() + text[::-1]);
+		this.tray.setText(this.tray.getText() + text);
 		this.guess.setText("");
 	}
 
@@ -243,7 +233,7 @@ class MainScene : AbstractScene {
 		win = this.currentScore < this.requiredScore;
 		color = win ? TextColor.RED : TextColor.GREEN;
 		for (word : this.boardWords) {
-			if (!word.isRevealed()) {
+			if (!word.isFullyRevealed()) {
 				word.revealAll();
 				word.flash(color);
 				word.setBasicColor(color);
@@ -284,6 +274,13 @@ class MainScene : AbstractScene {
 			}
 		}
 
+		// Update words.
+		this.tray.update(inputManager);
+		this.guess.update(inputManager);
+		for (word : this.boardWords) {
+			word.update(inputManager);
+		}
+
 		// Reveal all or reset.
 		if (this.concedeRestartButton.clicked) {
 			if (!this.revealAll()) {
@@ -298,7 +295,7 @@ class MainScene : AbstractScene {
 				trayLetters.add(c);
 			}
 			trayLetters.shuffle();
-			this.tray.setText(trayLetters);
+			this.tray.setText(trayLetters.join(""));
 		}
 
 		// Use letters from tray.
@@ -318,13 +315,11 @@ class MainScene : AbstractScene {
 			}
 		}
 		// Check for clicked tray letters.
-		trayText = this.tray.getText();
-		for (i = 0; i < trayText.length; ++i) {
-			if (inputManager.didMouseClickHere(TRAY_X + i * TRAY_COL_WIDTH, TRAY_Y, TRAY_COL_WIDTH, TRAY_HEIGHT)) {
-				this.guess.setText(this.guess.getText() + trayText[i]);
-				this.tray.setText(trayText[:i] + trayText[i+1:]);
-				break;
-			}
+		clickedTrayIdx = this.tray.clickedIdx();
+		if (clickedTrayIdx != null) {
+			trayText = this.tray.getText();
+			this.guess.setText(this.guess.getText() + trayText[clickedTrayIdx]);
+			this.tray.setText(trayText[:clickedTrayIdx] + trayText[clickedTrayIdx+1:]);
 		}
 
 		// Return letters to tray.
@@ -341,11 +336,53 @@ class MainScene : AbstractScene {
 			}
 		}
 		// Check for clicked guess letters.
-		guessText = this.guess.getText();
-		for (i = 0; i < guessText.length; ++i) {
-			if (inputManager.didMouseClickHere(GUESS_X + i * GUESS_COL_WIDTH, GUESS_Y, GUESS_COL_WIDTH, GUESS_HEIGHT)) {
-				this.tray.setText(this.tray.getText() + guessText[i]);
-				this.guess.setText(guessText[:i] + guessText[i+1:]);
+		clickedGuessIdx = this.guess.clickedIdx();
+		if (clickedGuessIdx != null) {
+			guessText = this.guess.getText();
+			this.tray.setText(this.tray.getText() + guessText[clickedGuessIdx]);
+			this.guess.setText(guessText[:clickedGuessIdx] + guessText[clickedGuessIdx+1:]);
+		}
+
+		// Use hints.
+		for (word : this.boardWords) {
+			clickedWordIdx = word.clickedIdx();
+			if (clickedWordIdx != null) {
+				if (this.hints > 0 && !word.isRevealedAt(clickedWordIdx)) {
+					--this.hints;
+					word.revealAt(clickedWordIdx);
+					if (word.isFullyRevealed()) {
+						// Update score.
+						wordScore = Scoring.score(word.getText());
+						this.currentScore += wordScore;
+						this.renderScoreText();
+						// Update hints.
+						this.hintsRequiredPts -= wordScore;
+						while (this.hintsRequiredPts <= 0) {
+							++this.hints;
+							this.hintsRequiredPts += PTS_PER_HINT;
+						}
+						// Change the concede button to "reveal" if enough words have been found.
+						if (this.currentScore >= this.requiredScore) {
+							this.concedeRestartButton.setText("Reveal All (Esc)");
+							// Change the concede button to "restart" if all words have been found.
+							foundAll = true;
+							for (word : this.boardWords) {
+								if (!word.isFullyRevealed()) {
+									foundAll = false;
+									break;
+								}
+							}
+							if (foundAll) {
+								this.concedeRestartButton.setText("Restart (Esc)");
+							}
+						}
+					}
+					this.renderHintsText();
+					// Ding!
+					if (!this.muted) {
+						MainScene.ding.play();
+					}
+				}
 				break;
 			}
 		}
@@ -354,7 +391,7 @@ class MainScene : AbstractScene {
 		if (this.checkButton.clicked) {
 			if (this.wordToBoardIdx.contains(this.guess.getText())) {
 				word = this.boardWords[this.wordToBoardIdx[this.guess.getText()]];
-				if (word.isRevealed()) {
+				if (word.isFullyRevealed()) {
 					// Already found this word.
 					word.flash(TextColor.YELLOW);
 				} else {
@@ -384,7 +421,7 @@ class MainScene : AbstractScene {
 						// Change the concede button to "restart" if all words have been found.
 						foundAll = true;
 						for (word : this.boardWords) {
-							if (!word.isRevealed()) {
+							if (!word.isFullyRevealed()) {
 								foundAll = false;
 								break;
 							}
@@ -402,30 +439,24 @@ class MainScene : AbstractScene {
 				}
 			}
 		}
-
-		// Update words.
-		this.guess.update();
-		for (word : this.boardWords) {
-			word.update();
-		}
 	}
 
 	function renderScoreText() {
-		MainScene.font
+		Fonts.font
 			.setStyle(FontStyle.BOLD)
 			.setColor(0, 0, 0)
 			.setSize(SCORE_HINTS_FONT_SIZE);
 		text = "Score: " + this.currentScore + "/" + this.maxScore
 			+ " (" + max(0, this.requiredScore - this.currentScore) + " pts. left to \"win\")";
-		this.scoreText = MainScene.font.render(text);
+		this.scoreText = Fonts.font.render(text);
 	}
 
 	function renderHintsText() {
-		MainScene.font
+		Fonts.font
 			.setStyle(FontStyle.BOLD)
 			.setColor(0, 0, 0)
 			.setSize(SCORE_HINTS_FONT_SIZE);
-		this.hintsText = MainScene.font.render
+		this.hintsText = Fonts.font.render
 			( "Hints: " + this.hints + " (" + this.hintsRequiredPts + " pts. to next hint)"
 			);
 	}
@@ -471,7 +502,14 @@ class MainScene : AbstractScene {
 			, SCORE_BAR_HEIGHT - 2
 			, r, g, 0
 			);
-		Graphics2D.Draw.line(X_RES / 4, Y_RES - SCORE_BAR_HEIGHT + 1, X_RES / 4, Y_RES - 1, 2, 0, 255, 0);
+		Graphics2D.Draw.line
+			( REQUIRED_SCORE_RATIO * X_RES
+			, Y_RES - SCORE_BAR_HEIGHT + 1
+			, REQUIRED_SCORE_RATIO * X_RES
+			, Y_RES - 1
+			, 2
+			, 0, 255, 0
+			);
 
 		// Draw score text.
 		this.scoreText.draw(SIDE_MARGIN, Y_RES - this.scoreText.height - SCORE_BAR_HEIGHT);

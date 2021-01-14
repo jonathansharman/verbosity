@@ -1,0 +1,5 @@
+import Graphics2DText;
+
+static class Fonts {
+	static field font = FontResource.fromResource("Courier Prime.ttf").getRenderer();
+}

@@ -1,3 +1,8 @@
+const LARGE_LETTER_WIDTH = 27.0;
+const LARGE_LETTER_HEIGHT = 40.0;
+const SMALL_LETTER_WIDTH = 21.0;
+const SMALL_LETTER_HEIGHT = 30.0;
+
 const FLASH_DURATION = 48;
 const FLASH_HALF_PERIOD = 6;
 
@@ -9,16 +14,32 @@ class Word {
 	@private field y;
 	@private field currentFlash = null;
 	@private field basicColor = TextColor.BLACK;
+	@private field lastClickedIdx = null;
+	@private field letterWidth;
+	@private field letterHeight;
 
 	constructor(text, x, y, large, revealed) {
 		this.text = text;
 		this.revealedMask = [revealed] * text.length;
 		this.large = large;
+		if (large) {
+			this.letterWidth = LARGE_LETTER_WIDTH;
+			this.letterHeight = LARGE_LETTER_HEIGHT;
+		} else {
+			this.letterWidth = SMALL_LETTER_WIDTH;
+			this.letterHeight = SMALL_LETTER_HEIGHT;
+		}
 		this.x = x;
 		this.y = y;
 	}
 
-	function isRevealed() {
+	// Whether the character at the given index is revealed.
+	function isRevealedAt(idx) {
+		return this.revealedMask[idx];
+	}
+
+	// Whether all characters in this word are revealed.
+	function isFullyRevealed() {
 		for (revealed : this.revealedMask) {
 			if (!revealed) {
 				return false;
@@ -27,33 +48,63 @@ class Word {
 		return true;
 	}
 
-	function revealAll() {
-		this.revealedMask = [true] * this.text.length;
+	// Gets the index of the letter that was clicked on last update() or null if none was clicked.
+	function clickedIdx() {
+		return this.lastClickedIdx;
 	}
 
+	// The word's current text.
 	function getText() {
 		return this.text;
 	}
 
+	// Reveals the character at the given index.
+	function revealAt(idx) {
+		this.revealedMask[idx] = true;
+	}
+
+	// Reveals all characters of this word.
+	function revealAll() {
+		this.revealedMask = [true] * this.text.length;
+	}
+
+	// Sets the word's text and reveals it.
 	function setText(text) {
 		this.text = text;
 		this.revealedMask = [true] * text.length;
 		this.currentFlash = null;
 	}
 
+	// Flashes this word with the given text color.
 	function flash(color) {
 		this.currentFlash = [FLASH_DURATION, color];
 	}
 
+	// Sets the color of this word when it's not flashing.
 	function setBasicColor(color) {
 		this.basicColor = color;
 	}
 
-	function update() {
+	// To be called once per frame.
+	function update(inputManager) {
 		if (this.currentFlash != null) {
 			--this.currentFlash[0];
 			if (this.currentFlash[0] == 0) {
 				this.currentFlash = null;
+			}
+		}
+		// Check for clicks.
+		this.lastClickedIdx = null;
+		for (i = 0; i < this.text.length; ++i) {
+			clicked = inputManager.didMouseClickHere
+				( this.x + i * this.letterWidth
+				, this.y
+				, this.letterWidth
+				, this.letterHeight
+				);
+			if (clicked) {
+				this.lastClickedIdx = i;
+				break;
 			}
 		}
 	}
@@ -73,7 +124,7 @@ class Word {
 				? LetterImages.large(letter, color)
 				: LetterImages.small(letter, color);
 			image.draw(x, this.y);
-			x += this.large ? TRAY_COL_WIDTH : BOARD_COL_WIDTH;
+			x += this.letterWidth;
 		}
 	}
 }
